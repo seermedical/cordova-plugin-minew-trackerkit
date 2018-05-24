@@ -7,24 +7,52 @@
 
 - (void)bleStatus:(CDVInvokedUrlCommand *)command {
   MTTrackerManager *manager = [MTTrackerManager sharedInstance];
-  NSLog(@"state: %@",manager.bleState);
-  NSString* test = @"hello";
-  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:test];
+  BOOL ble;
+  NSLog(@"%@",manager.bleState);
+  if(manager.bleState == Poweron) {
+    ble = true;
+  } else {
+    ble = false;
+  }
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:ble];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-
-
 - (void)startScan:(CDVInvokedUrlCommand *)command {
   MTTrackerManager *manager = [MTTrackerManager sharedInstance];
-
-  if(manager.bleState == Poweron) {
-     NSLog(@"the state is power on.");
-  }
-  // start scanning task.
+  // start scanning task
   [manager startScan:^(NSArray<MTTracker *> *trackers){
-      // if manager found devices, this block will call back.
+    NSInteger N = [trackers count];
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:10];
+    for(NSInteger i = 0; i < N; i ++){
+      MTTracker *tracker = trackers[i];
+
+      NSString *mac = tracker.mac; // mac address
+      NSString *name = tracker.name; // bluetooth name
+      NSInteger rssi = tracker.rssi;   // RSSI
+      NSInteger battery = tracker.battery; // battery 0～100
+      Connection status = tracker.connection; // current connection status
+      ModelType model = tracker.model;    // the tracker's model
+      DistanceLevel dis = tracker.distance;    // distance information.
+
+      dict[@"address"] = mac;
+      dict[@"name"] = name;
+      // dict[@"battery"] = battery;
+
+      NSLog(@"connection status: %ld",status);
+      NSLog(@"model type: %ld",model);
+      NSLog(@"distance: %ld",dis);
+
+      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
+      [result setKeepCallback:[NSNumber numberWithBool:YES]];
+      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }
   }];
 }
+
+-(void)bind:(CDVInvokedUrlCommand *)command {
+  NSString* id = [command.arguments objectAtIndex:0];
+}
+
 
 @end

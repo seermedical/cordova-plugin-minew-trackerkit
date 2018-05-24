@@ -9,6 +9,9 @@ var MinewTrackerkit = {
   },
   startScan: function(cb) {
     exec(cb, null, PLUGIN_NAME, 'startScan', []);
+  },
+  bind: function(id, cb) {
+  exec(cb, null, PLUGIN_NAME, 'bind', [id]);
   }
 };
 
