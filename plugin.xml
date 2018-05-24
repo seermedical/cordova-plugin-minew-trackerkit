@@ -24,6 +24,7 @@
         </feature>
       </config-file>
 
+      <source-file src="src/android/com/example/MinewTrackerkit.java" target-dir="src/com/example/" />
     </platform>
 
     <!-- ios -->

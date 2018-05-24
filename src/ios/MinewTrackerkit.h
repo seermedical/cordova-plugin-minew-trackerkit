@@ -1,14 +1,9 @@
-#import "MinewTrackerkit.h"
+#import <Cordova/CDVPlugin.h>
 
-#import <Cordova/CDVAvailability.h>
-#import <MTTrackit/MTTrackit.h>
-
-@implementation MinewTrackerkit
-
-- (void)testFunction:(CDVInvokedUrlCommand *)command {
-  NSString *test = "hello"
-  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:test];
-  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+@interface MinewTrackerkit : CDVPlugin {
 }
+
+// The hooks for our plugin commands
+- (void)testFunction:(CDVInvokedUrlCommand *)command;
 
 @end
