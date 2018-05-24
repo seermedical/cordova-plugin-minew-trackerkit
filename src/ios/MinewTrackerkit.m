@@ -18,6 +18,11 @@
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
+-(void)stopScan:(CDVInvokedUrlCommand *)command {
+  MTTrackerManager *manager = [MTTrackerManager sharedInstance];
+  [manager stopScan];
+}
+
 - (void)startScan:(CDVInvokedUrlCommand *)command {
   MTTrackerManager *manager = [MTTrackerManager sharedInstance];
   // start scanning task
