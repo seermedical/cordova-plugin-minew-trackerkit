@@ -5,6 +5,15 @@
 
 @implementation MinewTrackerkit
 
+@synthesize manager;
+@synthesize trackers;
+
+- (void)pluginInitialize {
+  [super pluginInitialize];
+  trackers = [NSMutableSet set];
+  manager = [MTTrackerManager sharedInstance];
+}
+
 - (void)bleStatus:(CDVInvokedUrlCommand *)command {
   MTTrackerManager *manager = [MTTrackerManager sharedInstance];
   BOOL ble;
@@ -31,6 +40,7 @@
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:10];
     for(NSInteger i = 0; i < N; i ++){
       MTTracker *tracker = trackers[i];
+      [trackers addObject:tracker];
 
       NSString *mac = tracker.mac; // mac address
       NSString *name = tracker.name; // bluetooth name
