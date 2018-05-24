@@ -5,8 +5,8 @@
 
 @implementation MinewTrackerkit
 
-- (void)bleStatus:(CDVInvokedUrlCommand *)command {
-  NSString* test = "hello";
+- (void)testFunction:(CDVInvokedUrlCommand *)command {
+  NSString* test = @"hello";
   CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:test];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
