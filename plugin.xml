@@ -41,7 +41,6 @@
 
         <header-file src="src/ios/MinewTrackerkit.h" />
         <source-file src="src/ios/MinewTrackerkit.m" />
-        <!-- <source-file src="src/ios/MinewBeaconPlus.swift" /> -->
 
         <framework src="src/ios/MTTrackit.framework" custom="true" embed="true"/>
     </platform>

@@ -4,6 +4,7 @@
 }
 
 // The hooks for our plugin commands
-- (void)testFunction:(CDVInvokedUrlCommand *)command;
+- (void)bleStatus:(CDVInvokedUrlCommand *)command;
+- (void)startScan:(CDVInvokedUrlCommand *)command;
 
 @end
