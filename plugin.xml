@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    id="cordova-plugin-minew-trackerkit"
+    version="1.0.0">
+    <name>Minew Tracker Kit</name>
+    <description></description>
+    <license>MIT</license>
+    <keywords></keywords>
+    <repo>https://github.com/seermedical/cordova-plugin-minew-trackerkit.git</repo>
+    <issue>https://github.com/seermedical/cordova-plugin-minew-trackerkit/issues</issue>
+
+    <!-- android -->
+    <platform name="android">
+      <js-module src="www/plugin.js" name="plugin">
+        <runs/>
+        <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
+        <clobbers target="MinewTrackerkit" />
+      </js-module>
+      <config-file target="res/xml/config.xml" parent="/*">
+        <feature name="MinewTrackerkit">
+          <param name="android-package" value="com.example.MinewTrackerkit" />
+          <param name="onload" value="true" />
+        </feature>
+      </config-file>
+
+      <source-file src="src/android/com/example/MinewTrackerkit.java" target-dir="src/com/example/" />
+    </platform>
+
+    <!-- ios -->
+    <platform name="ios">
+        <js-module src="www/plugin.js" name="plugin">
+            <runs/>
+            <clobbers target="MinewTrackerkit" />
+        </js-module>
+        <config-file target="config.xml" parent="/*">
+            <feature name="MinewTrackerkit">
+                <param name="ios-package" value="MinewTrackerkit" onload="true" />
+            </feature>
+        </config-file>
+
+        <header-file src="src/ios/MinewTrackerkit.h" />
+        <source-file src="src/ios/MinewTrackerkit.m" />
+        <!-- <source-file src="src/ios/MinewBeaconPlus.swift" /> -->
+
+        <framework src="src/ios/MTTrackit.framework" custom="true" embed="true"/>
+    </platform>
+</plugin>
