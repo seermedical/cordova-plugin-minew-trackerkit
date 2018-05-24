@@ -1,6 +1,5 @@
 #import "MinewTrackerkit.h"
 
-#import <Cordova/CDVPlugin.h>
 #import <Cordova/CDVAvailability.h>
 #import <MTTrackit/MTTrackit.h>
 
