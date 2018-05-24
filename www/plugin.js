@@ -1,27 +1,12 @@
 
 var exec = require('cordova/exec');
 
-var PLUGIN_NAME = 'MinewBeaconPlus';
+var PLUGIN_NAME = 'MinewTrackerkit';
 
-var MinewBeaconPlus = {
-  bleStatus: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'bleStatus', []);
-  },
-  restoreFactorySettings: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'restoreFactorySettings', []);
-  },
-  startScan: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'startScan', []);
-  },
-  stopScan: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'stopScan', []);
-  },
-  setTrigger: function(id, cb) {
-    exec(cb, null, PLUGIN_NAME, 'setTrigger', [id]);
-  },
-  getFrames: function(id, cb) {
-    exec(cb, null, PLUGIN_NAME, 'getFrames', [id]);
+var MinewTrackerkit = {
+  testFunction: function(cb) {
+    exec(cb, null, PLUGIN_NAME, 'testFunction', []);
   }
 };
 
-module.exports = MinewBeaconPlus;
+module.exports = MinewTrackerkit;
