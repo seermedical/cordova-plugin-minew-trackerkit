@@ -5,15 +5,6 @@
 
 @implementation MinewTrackerkit
 
-@synthesize manager;
-@synthesize trackers;
-
-- (void)pluginInitialize {
-  [super pluginInitialize];
-  trackers = [NSMutableSet set];
-  manager = [MTTrackerManager sharedInstance];
-}
-
 - (void)bleStatus:(CDVInvokedUrlCommand *)command {
   MTTrackerManager *manager = [MTTrackerManager sharedInstance];
   BOOL ble;
@@ -40,7 +31,7 @@
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:10];
     for(NSInteger i = 0; i < N; i ++){
       MTTracker *tracker = trackers[i];
-      [trackers addObject:tracker];
+      // [trackers addObject:tracker];
 
       NSString *mac = tracker.mac; // mac address
       NSString *name = tracker.name; // bluetooth name
@@ -58,7 +49,7 @@
       NSLog(@"model type: %ld",model);
       NSLog(@"distance: %ld",dis);
 
-      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
+      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:mac];
       [result setKeepCallback:[NSNumber numberWithBool:YES]];
       [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     }
@@ -67,6 +58,33 @@
 
 -(void)bind:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
+  MTTrackerManager *manager = [MTTrackerManager sharedInstance];
+  manager.password = @"B3agle!!";
+
+  // scan
+  [manager startScan:^(NSArray<MTTracker *> *trackers){
+    NSInteger N = [trackers count];
+    for(NSInteger i = 0; i < N; i ++){
+      MTTracker *tracker = trackers[i];
+      // find the same id
+      if ([tracker.mac isEqualToString:id]){
+        NSLog(@"binding to %@",id);
+        //  bind
+        [manager bindingVerify:tracker completion:^(BOOL success, NSError *error) {
+          if (success) {
+            NSLog(@"bind success");
+            [tracker didReceive:^(Receiving rec) {
+                // button pressed，
+                if(rec == ReceivingButtonPushed) {
+                   NSLog(@"The button on the device is pressed");
+                }
+            }];
+          }
+        }];
+      }
+    }
+  }];
+
 }
 
 
