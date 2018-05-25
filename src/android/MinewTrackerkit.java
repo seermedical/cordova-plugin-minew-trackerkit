@@ -13,8 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import android.util.Log;
-
-import java.util.Date;
+// import java.util.Date;
 
 public class MinewTrackerkit extends CordovaPlugin {
   private static final String TAG = "MinewTrackerkit";

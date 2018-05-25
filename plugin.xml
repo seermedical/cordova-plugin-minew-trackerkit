@@ -31,6 +31,7 @@
       </config-file>
       <source-file src="src/android/MinewTrackerkit.java" target-dir="src/com/minew/" />
       <source-file src="src/android/libs/MTTrackerKit.aar" target-dir="libs" />
+      <framework src="libs/MTTrackerKit.aar" custom="true" embed="true"/>
     </platform>
 
     <!-- ios -->
