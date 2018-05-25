@@ -33,8 +33,9 @@ public class MinewTrackerkit extends CordovaPlugin {
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     if(action.equals("bleStatus")) {
       // get sharedinstance of Manager
-      MTTrackerManager manager = MTTrackerManager.getInstance(context);
-      String status = manager.checkBluetoothState;
+      // MTTrackerManager manager = MTTrackerManager.getInstance(context);
+      // String status = manager.checkBluetoothState;
+      String status = "hello";
       Log.d(TAG, status);
       final PluginResult result = new PluginResult(PluginResult.Status.OK, status);
       callbackContext.sendPluginResult(result);
