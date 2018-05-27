@@ -9,3 +9,10 @@ android {
        exclude 'META-INF/LICENSE'
    }
 }
+
+repositories{
+  jcenter()
+  flatDir {
+      dirs 'libs'
+   }
+}
