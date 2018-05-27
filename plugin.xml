@@ -35,7 +35,7 @@
       <resource-file src="src/android/libs/MTTrackerKit.aar" target="libs/MTTrackerKit.aar" />
 
       <framework src="src/android/MinewTrackerkit.gradle" custom="true" type="gradleReference" />
-      <framework src="src/android/libs/MTTrackerKit.aar" custom="true" embed="true"/>
+      <!-- <framework src="src/android/libs/MTTrackerKit.aar" custom="true" embed="true"/> -->
     </platform>
 
     <!-- ios -->
