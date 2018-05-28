@@ -9,6 +9,11 @@ IN DEVELOPMENT: A Cordova plugin on iOS and Android to communicate with the Mine
 - [SDK for android and ios](http://docs.beaconyun.com/TrackerKit/iOS_MinewTrackerKit_Software_Development_Kit_Guide_en/)
 - [Minew Libraries and Framework](https://api.beaconyun.com/d/ba7627b8b03f4cb6a4a1/?p=/iOS&mode=list)
 
+# General Resources
+
+- [BLE template](https://github.com/seermedical/cordova-plugin-ble-central)
+- [Cordova documentation](https://cordova.apache.org/docs/en/latest/guide/hybrid/plugins/)
+
 
 # iOS Plugin
 - Can add frameworks via plugin
