@@ -24,18 +24,18 @@
         </feature>
       </config-file>
       <config-file target="AndroidManifest.xml" parent="/manifest">
-          <uses-sdk android:minSdkVersion="18" />
-          <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-          <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-          <uses-permission android:name="android.permission.BLUETOOTH"/>
-          <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+        <uses-sdk
+            android:minSdkVersion="18"
+            android:targetSdkVersion="26" />
+        <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+        <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+        <uses-permission android:name="android.permission.BLUETOOTH" />
+        <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+        <uses-permission android:name="android.permission.READ_PHONE_STATE" />
       </config-file>
 
       <source-file src="src/android/MinewTrackerkit.java" target-dir="src/com/minew/" />
-      <resource-file src="src/android/libs/MTTrackerKit.aar" target="libs/MTTrackerKit.aar" />
-
-      <framework src="src/android/MinewTrackerkit.gradle" custom="true" type="gradleReference" />
-      <!-- <framework src="src/android/libs/MTTrackerKit.aar" custom="true" embed="true"/> -->
+      <lib-file src="src/android/libs/>MTTrackerKit.jar" />
     </platform>
 
     <!-- ios -->
