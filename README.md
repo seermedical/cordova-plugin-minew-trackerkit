@@ -11,7 +11,14 @@ IN DEVELOPMENT: A Cordova plugin on iOS and Android to communicate with the Mine
 
 
 # iOS Plugin
-
+- Can add frameworks via plugin
+- startScan, bind and log on click is working
 
 # Android Plugin
-TODO
+- Can add frameworks via plugin
+- bleStatus is working
+- startScan needs additional permissions to work (see ble-central plugin for example).
+
+# TODO
+- Create a wiki of required functions
+- Lay out project structure for android and ios (required classes and methods etc)
