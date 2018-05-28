@@ -37,7 +37,7 @@
       <source-file src="src/android/MinewTrackerkit.java" target-dir="src/com/minew/" />
 
       <framework src="src/android/MinewTrackerkit.gradle" custom="true" type="gradleReference" />
-      <resource-file src="libs/MTTrackerKit.aar" target="libs/MTTrackerKit.aar" />
+      <resource-file src="src/android/libs/MTTrackerKit.aar" target="libs/MTTrackerKit.aar" />
     </platform>
 
     <!-- ios -->
