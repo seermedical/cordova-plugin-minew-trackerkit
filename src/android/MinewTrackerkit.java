@@ -12,8 +12,25 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import com.minewtech.mttrackit.MTTracker;
+import com.minewtech.mttrackit.MTTrackerManager;
+import com.minewtech.mttrackit.enums.BluetoothState;
+import com.minewtech.mttrackit.enums.ConnectionState;
+import com.minewtech.mttrackit.enums.TrackerModel;
+import com.minewtech.mttrackit.interfaces.ConnectionStateCallback;
+import com.minewtech.mttrackit.interfaces.OperationCallback;
+import com.minewtech.mttrackit.interfaces.ScanTrackerCallback;
+import com.minewtech.mttrackit.interfaces.TrackerManagerListener;
+
+import static com.minewtech.mttrackit.enums.ConnectionState.DeviceLinkStatus_Disconnect;
+
 import android.util.Log;
+import android.content.Context;
+
 // import java.util.Date;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MinewTrackerkit extends CordovaPlugin {
   private static final String TAG = "MinewTrackerkit";
@@ -25,23 +42,64 @@ public class MinewTrackerkit extends CordovaPlugin {
   // private CallbackContext permissionCallback;
   // private int scanSeconds;
 
+
+  private static Context mContext;
+
+
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
     Log.d(TAG, "Initializing MinewTrackerkit");
+    mContext = this.cordova.getActivity().getApplicationContext();
   }
 
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    if(action.equals("bleStatus")) {
-      // get sharedinstance of Manager
-      // MTTrackerManager manager = MTTrackerManager.getInstance(context);
-      // String status = manager.checkBluetoothState;
-      String status = "hello";
-      Log.d(TAG, status);
-      final PluginResult result = new PluginResult(PluginResult.Status.OK, status);
-      callbackContext.sendPluginResult(result);
+    if (action.equals("bleStatus")) {
+      this.bleStatus(callbackContext);
+      return true;
+    } else if (action.equals("startScan")) {
+      this.startScan(callbackContext);
+      return true;
+    } else if (action.equals("stopScan")) {
+      this.stopScan(callbackContext);
+      return true;
     }
-    return true;
+    return false;
   }
+
+  private void bleStatus(CallbackContext callbackContext) {
+    BluetoothState bluetoothState = MTTrackerManager.getInstance(mContext).checkBluetoothState();
+    Log.d(TAG, "status: " + bluetoothState);
+    switch (bluetoothState) {
+        case BluetoothStateNotSupported:
+//          final PluginResult result = new PluginResult(PluginResult.Status.OK, status);
+          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "not supported"));
+        case BluetoothStatePowerOff:
+          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 0));
+        case BluetoothStatePowerOn:
+          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 1));
+    }
+
+  }
+
+  private void startScan(CallbackContext callbackContext) {
+    Log.d(TAG, "start scan");
+    MTTrackerManager.getInstance(mContext).startScan(this.scanTrackerCallback);
+  }
+
+  private void stopScan(CallbackContext callbackContext) {
+    Log.d(TAG, "stop scan");
+    MTTrackerManager.getInstance(mContext).stopScan();
+  }
+
+  private ScanTrackerCallback scanTrackerCallback = new ScanTrackerCallback() {
+    @Override
+    public void onScannedTracker(LinkedList<MTTracker> trackers) {
+        for (MTTracker tracker : trackers) {
+          String mac = tracker.getMacAddress();
+          Log.d(TAG, mac);
+        }
+    }
+};
 
 
 }
