@@ -1,8 +1,10 @@
 Minew-TrackerKit
 ======
 
+THIS PLUGIN IS IN DEVELOPMENT. It very likely will not work and you definitely shouldn't use it.
+
 From Cordova plugin template from here https://github.com/rrostt/cordova-plugin-template
-IN DEVELOPMENT: A Cordova plugin on iOS and Android to communicate with the Minew TrackerKit Framework
+A Cordova plugin on iOS and Android to communicate with the Minew TrackerKit Framework
 
 # Minew Resources
 
@@ -14,16 +16,10 @@ IN DEVELOPMENT: A Cordova plugin on iOS and Android to communicate with the Mine
 - [BLE template](https://github.com/seermedical/cordova-plugin-ble-central)
 - [Cordova documentation](https://cordova.apache.org/docs/en/latest/guide/hybrid/plugins/)
 
-
 # iOS Plugin
 - Can add frameworks via plugin
 - startScan, bind and log on click is working
 
 # Android Plugin
 - Can add frameworks via plugin
-- bleStatus is working
-- startScan needs additional permissions to work (see ble-central plugin for example).
-
-# TODO
-- Create a wiki of required functions
-- Lay out project structure for android and ios (required classes and methods etc)
+- startScan, bind and log on click is working (but messy because I put it all in a scan loop!)
