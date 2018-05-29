@@ -26,6 +26,9 @@ import com.minewtech.mttrackit.interfaces.ConnectionStateCallback;
 import com.minewtech.mttrackit.interfaces.OperationCallback;
 import com.minewtech.mttrackit.interfaces.ScanTrackerCallback;
 import com.minewtech.mttrackit.interfaces.TrackerManagerListener;
+import com.minewtech.mttrackit.TrackerException;
+import com.minewtech.mttrackit.enums.ReceiveIndex;
+import com.minewtech.mttrackit.interfaces.ReceiveListener;
 
 import static com.minewtech.mttrackit.enums.ConnectionState.DeviceLinkStatus_Disconnect;
 
@@ -39,6 +42,7 @@ public class MinewTrackerkit extends CordovaPlugin {
   private static final String TAG = "MinewTrackerkit";
   private static Context mContext;
   private CallbackContext scanCallback;
+  private String bindAddress;
 
   // Android 23 requires new permissions for BluetoothLeScanner.startScan()
   private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -110,9 +114,53 @@ public class MinewTrackerkit extends CordovaPlugin {
     }
   };
 
+  private ScanTrackerCallback bindTrackerCallback = new ScanTrackerCallback() {
+    @Override
+    public void onScannedTracker(LinkedList<MTTracker> trackers) {
+        for (MTTracker tracker : trackers) {
+          if (bindAddress != null) {
+            String mac = tracker.getMacAddress();
+            if (mac.equals(bindAddress)) {
+              Log.d(TAG, "found tag will try to bind");
+              MTTrackerManager manager = MTTrackerManager.getInstance(mContext);
+              manager.bindingVerify(tracker,connectionCallback);
+              MTTracker bindTracker = manager.bindMTTracker(mac);
+              bindTracker.setReceiveListener(receiveListener);
+            }
+          }
+        }
+    }
+  };
+
   private void bind(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "binding to: " + macAddress);
+    MTTrackerManager manager = MTTrackerManager.getInstance(mContext);
+    manager.setPassword("B3agle!!");
+    bindAddress = macAddress;
+    scanCallback = null;
+    manager.startScan(this.bindTrackerCallback);
   }
+
+  private ConnectionStateCallback connectionCallback = new ConnectionStateCallback() {
+      @Override
+      public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
+          if (success) {
+              Log.d(TAG,"bind success");
+          } else {
+              Log.d(TAG,"bind fail");
+          }
+      }
+  };
+
+  private ReceiveListener receiveListener = new ReceiveListener() {
+      @Override
+      public void onReceive(ReceiveIndex index) {
+          switch (index) {
+              case InstrucIndex_ButtonPushed:
+              Log.d(TAG, "The button on the device is pressed");
+          }
+      }
+  };
 
   private void getRequiredPermissions() {
     if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
