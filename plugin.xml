@@ -19,12 +19,25 @@
       </js-module>
       <config-file target="res/xml/config.xml" parent="/*">
         <feature name="MinewTrackerkit">
-          <param name="android-package" value="com.example.MinewTrackerkit" />
+          <param name="android-package" value="com.minew.MinewTrackerkit" />
           <param name="onload" value="true" />
         </feature>
       </config-file>
+      <config-file target="AndroidManifest.xml" parent="/manifest">
+        <uses-sdk
+            android:minSdkVersion="18"
+            android:targetSdkVersion="26" />
+        <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+        <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+        <uses-permission android:name="android.permission.BLUETOOTH" />
+        <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+        <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+      </config-file>
 
-      <source-file src="src/android/com/example/MinewTrackerkit.java" target-dir="src/com/example/" />
+      <source-file src="src/android/MinewTrackerkit.java" target-dir="src/com/minew/" />
+
+      <framework src="src/android/MinewTrackerkit.gradle" custom="true" type="gradleReference" />
+      <resource-file src="src/android/libs/MTTrackerKit.aar" target="libs/MTTrackerKit.aar" />
     </platform>
 
     <!-- ios -->
