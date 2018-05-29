@@ -2,10 +2,15 @@
  */
 package com.minew;
 
+import android.Manifest;
+import android.util.Log;
+import android.content.Context;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.PluginResult.Status;
 import org.json.JSONObject;
@@ -24,32 +29,27 @@ import com.minewtech.mttrackit.interfaces.TrackerManagerListener;
 
 import static com.minewtech.mttrackit.enums.ConnectionState.DeviceLinkStatus_Disconnect;
 
-import android.util.Log;
-import android.content.Context;
-
 // import java.util.Date;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class MinewTrackerkit extends CordovaPlugin {
+
   private static final String TAG = "MinewTrackerkit";
-
-  // // Android 23 requires new permissions for BluetoothLeScanner.startScan()
-  // private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
-  // private static final int REQUEST_ACCESS_COARSE_LOCATION = 2;
-  // private static final int PERMISSION_DENIED_ERROR = 20;
-  // private CallbackContext permissionCallback;
-  // private int scanSeconds;
-
-
   private static Context mContext;
+  private CallbackContext scanCallback;
 
+  // Android 23 requires new permissions for BluetoothLeScanner.startScan()
+  private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
+  private static final int REQUEST_ACCESS_COARSE_LOCATION = 2;
+  private static final int PERMISSION_DENIED_ERROR = 20;
 
   public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     super.initialize(cordova, webView);
     Log.d(TAG, "Initializing MinewTrackerkit");
     mContext = this.cordova.getActivity().getApplicationContext();
+    getRequiredPermissions();
   }
 
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -61,6 +61,10 @@ public class MinewTrackerkit extends CordovaPlugin {
       return true;
     } else if (action.equals("stopScan")) {
       this.stopScan(callbackContext);
+      return true;
+    } else if (action.equals("bind")) {
+      String macAddress = args.getString(0);
+      this.bind(callbackContext, macAddress);
       return true;
     }
     return false;
@@ -83,6 +87,7 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void startScan(CallbackContext callbackContext) {
     Log.d(TAG, "start scan");
+    scanCallback = callbackContext;
     MTTrackerManager.getInstance(mContext).startScan(this.scanTrackerCallback);
   }
 
@@ -95,11 +100,26 @@ public class MinewTrackerkit extends CordovaPlugin {
     @Override
     public void onScannedTracker(LinkedList<MTTracker> trackers) {
         for (MTTracker tracker : trackers) {
-          String mac = tracker.getMacAddress();
-          Log.d(TAG, mac);
+          if (scanCallback != null) {
+            String mac = tracker.getMacAddress();
+            PluginResult result = new PluginResult(PluginResult.Status.OK, mac);
+            result.setKeepCallback(true);
+            scanCallback.sendPluginResult(result);
+          }
         }
     }
-};
+  };
+
+  private void bind(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "binding to: " + macAddress);
+  }
+
+  private void getRequiredPermissions() {
+    if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
+      PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
+      return;
+    }
+  }
 
 
 }
