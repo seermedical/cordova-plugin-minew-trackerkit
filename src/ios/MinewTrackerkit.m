@@ -5,49 +5,40 @@
 
 @implementation MinewTrackerkit
 
-- (void)bleStatus:(CDVInvokedUrlCommand *)command {
-  MTTrackerManager *manager = [MTTrackerManager sharedInstance];
-  BOOL ble;
-  NSLog(@"%@",manager.bleState);
-  if(manager.bleState == Poweron) {
-    ble = true;
-  } else {
-    ble = false;
-  }
-  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:ble];
-  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+@synthesize manager;
+@synthesize peripherals;
+
+- (void)pluginInitialize {
+
+    NSLog(@"Cordova BLE Central Plugin");
+    NSLog(@"(c)2014-2016 Don Coleman");
+
+    [super pluginInitialize];
+
+    peripherals = [NSMutableSet set];
+    manager = [MTTrackerManager sharedInstance];
+    manager.password = @"B3agle!!";
 }
 
 -(void)stopScan:(CDVInvokedUrlCommand *)command {
-  MTTrackerManager *manager = [MTTrackerManager sharedInstance];
   [manager stopScan];
 }
 
 - (void)startScan:(CDVInvokedUrlCommand *)command {
-  MTTrackerManager *manager = [MTTrackerManager sharedInstance];
-  // start scanning task
+  // MTTrackerManager *manager = [MTTrackerManager sharedInstance];
   [manager startScan:^(NSArray<MTTracker *> *trackers){
     NSInteger N = [trackers count];
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:10];
     for(NSInteger i = 0; i < N; i ++){
       MTTracker *tracker = trackers[i];
-      // [trackers addObject:tracker];
-
       NSString *mac = tracker.mac; // mac address
-      NSString *name = tracker.name; // bluetooth name
-      NSInteger rssi = tracker.rssi;   // RSSI
-      NSInteger battery = tracker.battery; // battery 0～100
-      Connection status = tracker.connection; // current connection status
-      ModelType model = tracker.model;    // the tracker's model
-      DistanceLevel dis = tracker.distance;    // distance information.
+      [peripherals addObject:tracker];
 
-      dict[@"address"] = mac;
-      dict[@"name"] = name;
-      // dict[@"battery"] = battery;
-
-      NSLog(@"connection status: %ld",status);
-      NSLog(@"model type: %ld",model);
-      NSLog(@"distance: %ld",dis);
+      // NSString *name = tracker.name; // bluetooth name
+      // NSInteger rssi = tracker.rssi;   // RSSI
+      // NSInteger battery = tracker.battery; // battery 0～100
+      // Connection status = tracker.connection; // current connection status
+      // ModelType model = tracker.model;    // the tracker's model
+      // DistanceLevel dis = tracker.distance;    // distance information.
 
       CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:mac];
       [result setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -56,35 +47,19 @@
   }];
 }
 
--(void)bind:(CDVInvokedUrlCommand *)command {
+- (void)bind:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
-  MTTrackerManager *manager = [MTTrackerManager sharedInstance];
-  manager.password = @"B3agle!!";
-
-  // scan
-  [manager startScan:^(NSArray<MTTracker *> *trackers){
-    NSInteger N = [trackers count];
-    for(NSInteger i = 0; i < N; i ++){
-      MTTracker *tracker = trackers[i];
-      // find the same id
-      if ([tracker.mac isEqualToString:id]){
-        NSLog(@"binding to %@",id);
-        //  bind
-        [manager bindingVerify:tracker completion:^(BOOL success, NSError *error) {
-          if (success) {
-            NSLog(@"bind success");
-            [tracker didReceive:^(Receiving rec) {
-                // button pressed，
-                if(rec == ReceivingButtonPushed) {
-                   NSLog(@"The button on the device is pressed");
-                }
-            }];
-          }
-        }];
-      }
+  NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
+  NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
+  NSArray *array = [trackers allObjects];
+  NSLog(@"number of periperhals: %d",[array count]);
+  MTTracker *trackerToBind = [array objectAtIndex:0];
+  NSLog(@"%@",trackerToBind);
+  [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
+    if (success) {
+      NSLog(@"bind success");
     }
   }];
-
 }
 
 
