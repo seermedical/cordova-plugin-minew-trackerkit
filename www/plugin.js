@@ -13,8 +13,11 @@ var MinewTrackerkit = {
   stopScan: function(cb) {
     exec(cb, null, PLUGIN_NAME, 'stopScan', []);
   },
-  bind: function(id, cb) {
-  exec(cb, null, PLUGIN_NAME, 'bind', [id]);
+  connect: function(id, cb) {
+  exec(cb, null, PLUGIN_NAME, 'connect', [id]);
+  },
+  subscribe: function(id, cb) {
+  exec(cb, null, PLUGIN_NAME, 'subscribe', [id]);
   }
 };
 

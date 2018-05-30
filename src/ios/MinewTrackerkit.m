@@ -47,7 +47,7 @@
   }];
 }
 
-- (void)bind:(CDVInvokedUrlCommand *)command {
+- (void)connect:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
   NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
@@ -60,6 +60,10 @@
       NSLog(@"bind success");
     }
   }];
+}
+
+- (void)subscribe:(CDVInvokedUrlCommand *)command {
+  NSString* id = [command.arguments objectAtIndex:0];
 }
 
 
