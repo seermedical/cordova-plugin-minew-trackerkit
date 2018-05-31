@@ -15,6 +15,9 @@ var MinewTrackerkit = {
   },
   connect: function(id, cb) {
   exec(cb, null, PLUGIN_NAME, 'connect', [id]);
+  },
+  subscribe: function(id, cb) {
+  exec(cb, null, PLUGIN_NAME, 'subscribe', [id]);
   }
 };
 

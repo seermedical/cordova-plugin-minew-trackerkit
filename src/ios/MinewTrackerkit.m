@@ -62,5 +62,9 @@
   }];
 }
 
+- (void)subscribe:(CDVInvokedUrlCommand *)command {
+  NSString* id = [command.arguments objectAtIndex:0];
+}
+
 
 @end
