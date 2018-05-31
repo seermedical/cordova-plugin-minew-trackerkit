@@ -59,6 +59,15 @@
   }];
 }
 
+- (void)disconnect:(CDVInvokedUrlCommand *)command {
+  NSString* id = [command.arguments objectAtIndex:0];
+  // unbind the tracker
+  [manager unbindTracker:id completion:^(BOOL success, NSError *error) {
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:success];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+  }];
+}
+
 - (void)subscribe:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
