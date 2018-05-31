@@ -52,10 +52,13 @@
   // NSLog(@"number of periperhals: %d",[array count]);
   MTTracker *trackerToBind = [array objectAtIndex:0];
   [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
+    CDVPluginResult *result;
     if (success) {
-      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:success];
-      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    } else {
+      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
     }
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
   }];
 }
 
@@ -75,18 +78,15 @@
   NSArray *array = [trackers allObjects];
   MTTracker *trackerToSubscribe = [array objectAtIndex:0];
   Connection status = trackerToSubscribe.connection;
-  // NSLog(@"%tu",status);  // -1 connect failed, 0 disconnected, 1 connecting, 2 connected
-  if (status == 2) {
-    [trackerToSubscribe didReceive:^(Receiving rec) {
-        if(rec == ReceivingButtonPushed) {
-          CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:id];
-          [result setKeepCallback:[NSNumber numberWithBool:YES]];
-          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-        }
-    }];
-  } else if (status == 0) {
-    // connect first
-  }
+  // NSLog(@"status: %tu",status);  // WHY IS STATUS ALWAYS 2 !!!!!!!
+
+  [trackerToSubscribe didReceive:^(Receiving rec) {
+      if(rec == ReceivingButtonPushed) {
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:id];
+        [result setKeepCallback:[NSNumber numberWithBool:YES]];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+      }
+  }];
 }
 
 
