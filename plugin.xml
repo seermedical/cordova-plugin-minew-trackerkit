@@ -3,7 +3,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="minew-trackerkit"
     version="1.0.0">
-    <name>Minew Tracker Kit</name>
+    <name>MinewTrackerkit</name>
     <description></description>
     <license>MIT</license>
     <keywords></keywords>
