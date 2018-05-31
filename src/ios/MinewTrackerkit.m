@@ -61,6 +61,23 @@
 
 - (void)subscribe:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
+  NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
+  NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
+  NSArray *array = [trackers allObjects];
+  MTTracker *trackerToSubscribe = [array objectAtIndex:0];
+  Connection status = trackerToSubscribe.connection;
+  // NSLog(@"%tu",status);  // -1 connect failed, 0 disconnected, 1 connecting, 2 connected
+  if (status == 2) {
+    [trackerToSubscribe didReceive:^(Receiving rec) {
+        if(rec == ReceivingButtonPushed) {
+          CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:id];
+          [result setKeepCallback:[NSNumber numberWithBool:YES]];
+          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        }
+    }];
+  } else if (status == 0) {
+    // connect first
+  }
 }
 
 
