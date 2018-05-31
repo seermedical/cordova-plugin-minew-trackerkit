@@ -47,17 +47,17 @@
   }];
 }
 
-- (void)bind:(CDVInvokedUrlCommand *)command {
+- (void)connect:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
   NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
   NSArray *array = [trackers allObjects];
-  NSLog(@"number of periperhals: %d",[array count]);
+  // NSLog(@"number of periperhals: %d",[array count]);
   MTTracker *trackerToBind = [array objectAtIndex:0];
-  NSLog(@"%@",trackerToBind);
   [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
     if (success) {
-      NSLog(@"bind success");
+      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:success];
+      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     }
   }];
 }

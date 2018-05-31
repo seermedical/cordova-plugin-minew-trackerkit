@@ -11,6 +11,6 @@
 - (void)bleStatus:(CDVInvokedUrlCommand *)command;
 - (void)startScan:(CDVInvokedUrlCommand *)command;
 - (void)stopScan:(CDVInvokedUrlCommand *)command;
-- (void)bind:(CDVInvokedUrlCommand *)command;
+- (void)connect:(CDVInvokedUrlCommand *)command;
 
 @end
