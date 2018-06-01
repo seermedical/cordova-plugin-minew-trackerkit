@@ -14,5 +14,6 @@
 - (void)connect:(CDVInvokedUrlCommand *)command;
 - (void)disconnect:(CDVInvokedUrlCommand *)command;
 - (void)subscribe:(CDVInvokedUrlCommand *)command;
+- (NSMutableDictionary *)asDictionary:(MTTracker *)tracker;
 
 @end
