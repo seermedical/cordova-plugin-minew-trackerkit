@@ -7,6 +7,9 @@ var MinewTrackerkit = {
   bleStatus: function(cb) {
     exec(cb, null, PLUGIN_NAME, 'bleStatus', []);
   },
+  find: function(cb) {
+    exec(cb, null, PLUGIN_NAME, 'find', []);
+  },
   startScan: function(cb) {
     exec(cb, null, PLUGIN_NAME, 'startScan', []);
   },

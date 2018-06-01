@@ -17,7 +17,7 @@
     manager.password = @"B3agle!!";
 }
 
--(void)stopScan:(CDVInvokedUrlCommand *)command {
+- (void)stopScan:(CDVInvokedUrlCommand *)command {
   [manager stopScan];
 }
 
@@ -35,6 +35,10 @@
       [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     }
   }];
+}
+
+- (void)find:(CDVInvokedUrlCommand *)command {
+  // THIS FUNCTION WILL LOOK FOR ALREADY BOUND TRACKERS ON APP RESTART
 }
 
 - (void)connect:(CDVInvokedUrlCommand *)command {
