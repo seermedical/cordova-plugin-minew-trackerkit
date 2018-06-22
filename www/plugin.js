@@ -24,7 +24,7 @@ var MinewTrackerkit = {
   },
   subscribeToClick: function(id, success, failure) {
   exec(success, failure, PLUGIN_NAME, 'subscribeToClick', [id]);
-},
+  },
   subscribeToStatus: function(id, success, failure) {
   exec(success, failure, PLUGIN_NAME, 'subscribeToStatus', [id]);
   }

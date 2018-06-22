@@ -47,15 +47,6 @@
   CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 
-  // [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
-  //   CDVPluginResult *result;
-  //   if (success) {
-  //     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-  //   } else {
-  //     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:dictionary];
-  //   }
-  //   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-  // }];
 }
 
 - (void)connect:(CDVInvokedUrlCommand *)command {
@@ -78,7 +69,6 @@
 
 - (void)disconnect:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
-  // unbind the tracker
   [manager unbindTracker:id completion:^(BOOL success, NSError *error) {
       // success YES means operate success, else NO.
   }];
