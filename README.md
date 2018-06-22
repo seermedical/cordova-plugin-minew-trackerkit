@@ -17,8 +17,8 @@ A Cordova plugin on iOS and Android to communicate with the Minew TrackerKit Fra
 - [Cordova documentation](https://cordova.apache.org/docs/en/latest/guide/hybrid/plugins/)
 
 # iOS Plugin
-- Can add frameworks via plugin
-- startScan, bind and log on click is working
+- Satisfactory performance for a first draft / baseline
+- Still some TODOs (see Wiki), and error handling needed
 
 # Android Plugin
 - Can add frameworks via plugin
