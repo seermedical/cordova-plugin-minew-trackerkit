@@ -38,7 +38,15 @@
 }
 
 - (void)find:(CDVInvokedUrlCommand *)command {
-  // THIS FUNCTION WILL LOOK FOR ALREADY BOUND TRACKERS ON APP RESTART
+  NSString* id = [command.arguments objectAtIndex:0];
+  NSLog(@"finding %@", id);
+  MTTracker *trackerToBind = [manager addTracker:id];
+  [peripherals addObject:trackerToBind];
+  NSMutableDictionary *dictionary = [self asDictionary:trackerToBind];
+  NSLog(@"%@",peripherals);
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+
 }
 
 - (void)connect:(CDVInvokedUrlCommand *)command {
@@ -61,14 +69,15 @@
 
 - (void)disconnect:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
-  // unbind the tracker
   [manager unbindTracker:id completion:^(BOOL success, NSError *error) {
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:success];
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+      // success YES means operate success, else NO.
   }];
+  [manager removeTracker:id];
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void)subscribe:(CDVInvokedUrlCommand *)command {
+- (void)subscribeToClick:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
   NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
@@ -86,6 +95,36 @@
   } else {
     // TODO connect then bind
   }
+}
+
+- (void)subscribeToStatus:(CDVInvokedUrlCommand *)command {
+  NSString* id = [command.arguments objectAtIndex:0];
+  // TODO make this search its own function?
+  NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
+  NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
+  NSArray *array = [trackers allObjects];
+  MTTracker *trackerToSubscribe = [array objectAtIndex:0];
+  [trackerToSubscribe didConnectionChange:^(Connection con){
+    switch(con){
+        case ConnectionConnecting:
+            NSLog(@"Connection to the Tracker");
+            break;
+        case ConnectionConnected: {
+          NSLog(@"Tracker is connected");
+          CDVPluginResult *resultConnect = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+          [resultConnect setKeepCallback:[NSNumber numberWithBool:YES]];
+          [self.commandDelegate sendPluginResult:resultConnect callbackId:command.callbackId];
+          break;
+        }
+        case ConnectionDisconnected: {
+          NSLog(@"Tracker is disconnected");
+          CDVPluginResult *resultDisconnect = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+          [resultDisconnect setKeepCallback:[NSNumber numberWithBool:YES]];
+          [self.commandDelegate sendPluginResult:resultDisconnect callbackId:command.callbackId];
+          break;
+        }
+    };
+  }];
 }
 
 - (NSMutableDictionary *)asDictionary:(MTTracker *)tracker {
