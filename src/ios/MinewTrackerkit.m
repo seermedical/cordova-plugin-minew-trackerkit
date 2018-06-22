@@ -38,9 +38,24 @@
 }
 
 - (void)find:(CDVInvokedUrlCommand *)command {
-  // THIS FUNCTION WILL LOOK FOR ALREADY BOUND TRACKERS ON APP RESTART
   NSString* id = [command.arguments objectAtIndex:0];
   NSLog(@"finding %@", id);
+  MTTracker *trackerToBind = [manager addTracker:id];
+  [peripherals addObject:trackerToBind];
+  NSMutableDictionary *dictionary = [self asDictionary:trackerToBind];
+  NSLog(@"%@",peripherals);
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+
+  // [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
+  //   CDVPluginResult *result;
+  //   if (success) {
+  //     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+  //   } else {
+  //     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:dictionary];
+  //   }
+  //   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+  // }];
 }
 
 - (void)connect:(CDVInvokedUrlCommand *)command {
@@ -65,9 +80,11 @@
   NSString* id = [command.arguments objectAtIndex:0];
   // unbind the tracker
   [manager unbindTracker:id completion:^(BOOL success, NSError *error) {
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:success];
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+      // success YES means operate success, else NO.
   }];
+  [manager removeTracker:id];
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
 - (void)subscribeToClick:(CDVInvokedUrlCommand *)command {
