@@ -98,15 +98,21 @@
   NSArray *array = [trackers allObjects];
   MTTracker *trackerToSubscribe = [array objectAtIndex:0];
   [trackerToSubscribe didConnectionChange:^(Connection con){
+    CDVPluginResult *result;
+    [result setKeepCallback:[NSNumber numberWithBool:YES]];
     switch(con){
         case ConnectionConnecting:
             NSLog(@"Connection to the Tracker");
             break;
         case ConnectionConnected:
             NSLog(@"Tracker is connected");
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
             break;
         case ConnectionDisconnected:
             NSLog(@"Tracker is disconnected");
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
             break;
     };
   }];
