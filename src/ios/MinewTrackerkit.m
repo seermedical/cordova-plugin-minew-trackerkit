@@ -92,7 +92,24 @@
 
 - (void)subscribeToStatus:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
-  NSLog(@"subscribe to status of %@", id);
+  // TODO make this search its own function?
+  NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
+  NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
+  NSArray *array = [trackers allObjects];
+  MTTracker *trackerToSubscribe = [array objectAtIndex:0];
+  [trackerToSubscribe didConnectionChange:^(Connection con){
+    switch(con){
+        case ConnectionConnecting:
+            NSLog(@"Connection to the Tracker");
+            break;
+        case ConnectionConnected:
+            NSLog(@"Tracker is connected");
+            break;
+        case ConnectionDisconnected:
+            NSLog(@"Tracker is disconnected");
+            break;
+    };
+  }];
 }
 
 - (NSMutableDictionary *)asDictionary:(MTTracker *)tracker {
