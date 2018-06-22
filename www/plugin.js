@@ -4,26 +4,29 @@ var exec = require('cordova/exec');
 var PLUGIN_NAME = 'MinewTrackerkit';
 
 var MinewTrackerkit = {
-  bleStatus: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'bleStatus', []);
+  bleStatus: function(success) {
+    exec(success, null, PLUGIN_NAME, 'bleStatus', []);
   },
-  find: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'find', []);
+  find: function(id, success, failure) {
+    exec(success, failure, PLUGIN_NAME, 'find', [id]);
   },
-  startScan: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'startScan', []);
+  startScan: function(success, failure) {
+    exec(success, failure, PLUGIN_NAME, 'startScan', []);
   },
-  stopScan: function(cb) {
-    exec(cb, null, PLUGIN_NAME, 'stopScan', []);
+  stopScan: function(success, failure) {
+    exec(success, failure, PLUGIN_NAME, 'stopScan', []);
   },
-  connect: function(id, cb) {
-  exec(cb, null, PLUGIN_NAME, 'connect', [id]);
+  connect: function(id, success, failure) {
+  exec(success, failure, PLUGIN_NAME, 'connect', [id]);
   },
-  disconnect: function(id, cb) {
-  exec(cb, null, PLUGIN_NAME, 'disconnect', [id]);
+  disconnect: function(id, success, failure) {
+  exec(success, failure, PLUGIN_NAME, 'disconnect', [id]);
   },
-  subscribe: function(id, cb) {
-  exec(cb, null, PLUGIN_NAME, 'subscribe', [id]);
+  subscribeToClick: function(id, success, failure) {
+  exec(success, failure, PLUGIN_NAME, 'subscribeToClick', [id]);
+},
+  subscribeToStatus: function(id, success, failure) {
+  exec(success, failure, PLUGIN_NAME, 'subscribeToStatus');
   }
 };
 

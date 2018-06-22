@@ -39,6 +39,8 @@
 
 - (void)find:(CDVInvokedUrlCommand *)command {
   // THIS FUNCTION WILL LOOK FOR ALREADY BOUND TRACKERS ON APP RESTART
+  NSString* id = [command.arguments objectAtIndex:0];
+  NSLog(@"finding %@", id);
 }
 
 - (void)connect:(CDVInvokedUrlCommand *)command {
@@ -68,7 +70,7 @@
   }];
 }
 
-- (void)subscribe:(CDVInvokedUrlCommand *)command {
+- (void)subscribeToClick:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
   NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
@@ -86,6 +88,11 @@
   } else {
     // TODO connect then bind
   }
+}
+
+- (void)subscribeToStatus:(CDVInvokedUrlCommand *)command {
+  NSString* id = [command.arguments objectAtIndex:0];
+  NSLog(@"subscribe to status of %@", id);
 }
 
 - (NSMutableDictionary *)asDictionary:(MTTracker *)tracker {
