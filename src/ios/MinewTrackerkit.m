@@ -22,7 +22,6 @@
 }
 
 - (void)startScan:(CDVInvokedUrlCommand *)command {
-  // MTTrackerManager *manager = [MTTrackerManager sharedInstance];
   [manager startScan:^(NSArray<MTTracker *> *trackers){
     NSInteger N = [trackers count];
     for(NSInteger i = 0; i < N; i ++){
@@ -39,14 +38,27 @@
 
 - (void)find:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
-  NSLog(@"finding %@", id);
-  MTTracker *trackerToBind = [manager addTracker:id];
-  [peripherals addObject:trackerToBind];
-  NSMutableDictionary *dictionary = [self asDictionary:trackerToBind];
-  NSLog(@"%@",peripherals);
-  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-
+  [manager startScan:^(NSArray<MTTracker *> *trackers){
+    NSInteger N = [trackers count];
+    for(NSInteger i = 0; i < N; i ++){
+      MTTracker *tracker = trackers[i];
+      NSString *mac = tracker.mac; // mac address
+      if ([mac isEqualToString:id]) {
+        [peripherals addObject:tracker];
+        NSMutableDictionary *dictionary = [self asDictionary:tracker];
+        CDVPluginResult *result;
+        [manager bindingVerify:tracker completion:^(BOOL success, NSError *error) {
+          CDVPluginResult *result;
+          if (success) {
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+          } else {
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+          }
+          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        }];
+      }
+    }
+  }];
 }
 
 - (void)connect:(CDVInvokedUrlCommand *)command {
