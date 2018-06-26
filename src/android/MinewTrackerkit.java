@@ -57,8 +57,9 @@ public class MinewTrackerkit extends CordovaPlugin {
   }
 
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    if (action.equals("bleStatus")) {
-      this.bleStatus(callbackContext);
+    if (action.equals("find")) {
+      String macAddress = args.getString(0);
+      this.find(callbackContext, macAddress);
       return true;
     } else if (action.equals("startScan")) {
       this.startScan(callbackContext);
@@ -66,27 +67,24 @@ public class MinewTrackerkit extends CordovaPlugin {
     } else if (action.equals("stopScan")) {
       this.stopScan(callbackContext);
       return true;
-    } else if (action.equals("bind")) {
+    } else if (action.equals("connect")) {
       String macAddress = args.getString(0);
-      this.bind(callbackContext, macAddress);
+      this.connect(callbackContext, macAddress);
+      return true;
+    } else if (action.equals("disconnect")) {
+      String macAddress = args.getString(0);
+      this.disconnect(callbackContext, macAddress);
+      return true;
+    } else if (action.equals("subscribeToClick")) {
+      String macAddress = args.getString(0);
+      this.subscribeToClick(callbackContext, macAddress);
+      return true;
+    } else if (action.equals("subscribeToStatus")) {
+      String macAddress = args.getString(0);
+      this.subscribeToStatus(callbackContext, macAddress);
       return true;
     }
     return false;
-  }
-
-  private void bleStatus(CallbackContext callbackContext) {
-    BluetoothState bluetoothState = MTTrackerManager.getInstance(mContext).checkBluetoothState();
-    Log.d(TAG, "status: " + bluetoothState);
-    switch (bluetoothState) {
-        case BluetoothStateNotSupported:
-//          final PluginResult result = new PluginResult(PluginResult.Status.OK, status);
-          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "not supported"));
-        case BluetoothStatePowerOff:
-          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 0));
-        case BluetoothStatePowerOn:
-          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 1));
-    }
-
   }
 
   private void startScan(CallbackContext callbackContext) {
@@ -98,6 +96,26 @@ public class MinewTrackerkit extends CordovaPlugin {
   private void stopScan(CallbackContext callbackContext) {
     Log.d(TAG, "stop scan");
     MTTrackerManager.getInstance(mContext).stopScan();
+  }
+
+  private void find(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "find: " + macAddress);
+  }
+
+  private void connect(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "connect to: " + macAddress);
+  }
+
+  private void disconnect(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "disconnect: " + macAddress);
+  }
+
+  private void subscribeToClick(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "subscribe to: " + macAddress);
+  }
+
+  private void subscribeToStatus(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "subscribe to: " + macAddress);
   }
 
   private ScanTrackerCallback scanTrackerCallback = new ScanTrackerCallback() {
@@ -112,54 +130,6 @@ public class MinewTrackerkit extends CordovaPlugin {
           }
         }
     }
-  };
-
-  private ScanTrackerCallback bindTrackerCallback = new ScanTrackerCallback() {
-    @Override
-    public void onScannedTracker(LinkedList<MTTracker> trackers) {
-        for (MTTracker tracker : trackers) {
-          if (bindAddress != null) {
-            String mac = tracker.getMacAddress();
-            if (mac.equals(bindAddress)) {
-              Log.d(TAG, "found tag will try to bind");
-              MTTrackerManager manager = MTTrackerManager.getInstance(mContext);
-              manager.bindingVerify(tracker,connectionCallback);
-              MTTracker bindTracker = manager.bindMTTracker(mac);
-              bindTracker.setReceiveListener(receiveListener);
-            }
-          }
-        }
-    }
-  };
-
-  private void bind(CallbackContext callbackContext, String macAddress) {
-    Log.d(TAG, "binding to: " + macAddress);
-    MTTrackerManager manager = MTTrackerManager.getInstance(mContext);
-    manager.setPassword("B3agle!!");
-    bindAddress = macAddress;
-    scanCallback = null;
-    manager.startScan(this.bindTrackerCallback);
-  }
-
-  private ConnectionStateCallback connectionCallback = new ConnectionStateCallback() {
-      @Override
-      public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
-          if (success) {
-              Log.d(TAG,"bind success");
-          } else {
-              Log.d(TAG,"bind fail");
-          }
-      }
-  };
-
-  private ReceiveListener receiveListener = new ReceiveListener() {
-      @Override
-      public void onReceive(ReceiveIndex index) {
-          switch (index) {
-              case InstrucIndex_ButtonPushed:
-              Log.d(TAG, "The button on the device is pressed");
-          }
-      }
   };
 
   private void getRequiredPermissions() {
