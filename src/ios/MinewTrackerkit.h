@@ -8,7 +8,6 @@
 @property (strong, nonatomic) MTTrackerManager *manager;
 
 // The hooks for our plugin commands
-- (void)bleStatus:(CDVInvokedUrlCommand *)command;
 - (void)find:(CDVInvokedUrlCommand *)command;
 - (void)startScan:(CDVInvokedUrlCommand *)command;
 - (void)stopScan:(CDVInvokedUrlCommand *)command;

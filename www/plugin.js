@@ -4,9 +4,6 @@ var exec = require('cordova/exec');
 var PLUGIN_NAME = 'MinewTrackerkit';
 
 var MinewTrackerkit = {
-  bleStatus: function(success) {
-    exec(success, null, PLUGIN_NAME, 'bleStatus', []);
-  },
   find: function(id, success, failure) {
     exec(success, failure, PLUGIN_NAME, 'find', [id]);
   },
