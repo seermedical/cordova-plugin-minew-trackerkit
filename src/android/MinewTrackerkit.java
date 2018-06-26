@@ -32,10 +32,7 @@ import com.minewtech.mttrackit.interfaces.ReceiveListener;
 
 import static com.minewtech.mttrackit.enums.ConnectionState.DeviceLinkStatus_Disconnect;
 
-// import java.util.Date;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class MinewTrackerkit extends CordovaPlugin {
 
@@ -43,6 +40,8 @@ public class MinewTrackerkit extends CordovaPlugin {
   private static Context mContext;
   private CallbackContext scanCallback;
   private String bindAddress;
+
+  private static Map<String, MTTracker> peripherals;
 
   // Android 23 requires new permissions for BluetoothLeScanner.startScan()
   private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -53,7 +52,10 @@ public class MinewTrackerkit extends CordovaPlugin {
     super.initialize(cordova, webView);
     Log.d(TAG, "Initializing MinewTrackerkit");
     mContext = this.cordova.getActivity().getApplicationContext();
-    getRequiredPermissions();
+    peripherals = new LinkedHashMap<String, MTTracker>();
+    if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
+      getRequiredPermissions();
+    }
   }
 
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -89,8 +91,12 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void startScan(CallbackContext callbackContext) {
     Log.d(TAG, "start scan");
-    scanCallback = callbackContext;
-    MTTrackerManager.getInstance(mContext).startScan(this.scanTrackerCallback);
+    if(PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
+      scanCallback = callbackContext;
+      MTTrackerManager.getInstance(mContext).startScan(this.scanTrackerCallback);
+    } else {
+      Log.d(TAG, "NO PERMISSION");
+    }
   }
 
   private void stopScan(CallbackContext callbackContext) {
@@ -121,22 +127,24 @@ public class MinewTrackerkit extends CordovaPlugin {
   private ScanTrackerCallback scanTrackerCallback = new ScanTrackerCallback() {
     @Override
     public void onScannedTracker(LinkedList<MTTracker> trackers) {
-        for (MTTracker tracker : trackers) {
-          if (scanCallback != null) {
-            String mac = tracker.getMacAddress();
-            PluginResult result = new PluginResult(PluginResult.Status.OK, mac);
+      PluginResult result;
+      for (MTTracker tracker : trackers) {
+        if (scanCallback != null) {
+          String mac = tracker.getMacAddress();
+          if (!peripherals.containsKey(mac)) {
+            peripherals.put(mac, tracker);
+            result = new PluginResult(PluginResult.Status.OK, mac);
             result.setKeepCallback(true);
             scanCallback.sendPluginResult(result);
           }
         }
+      }
     }
   };
 
   private void getRequiredPermissions() {
-    if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
-      PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
-      return;
-    }
+    PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
+    return;
   }
 
 
