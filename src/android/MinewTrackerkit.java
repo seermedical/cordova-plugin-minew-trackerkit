@@ -42,6 +42,7 @@ public class MinewTrackerkit extends CordovaPlugin {
   private String bindAddress;
 
   private static Map<String, MTTracker> peripherals;
+  private static MTTrackerManager manager;
 
   // Android 23 requires new permissions for BluetoothLeScanner.startScan()
   private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -53,6 +54,7 @@ public class MinewTrackerkit extends CordovaPlugin {
     Log.d(TAG, "Initializing MinewTrackerkit");
     mContext = this.cordova.getActivity().getApplicationContext();
     peripherals = new LinkedHashMap<String, MTTracker>();
+    manager = MTTrackerManager.getInstance(mContext);
     if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
       getRequiredPermissions();
     }
@@ -93,7 +95,7 @@ public class MinewTrackerkit extends CordovaPlugin {
     Log.d(TAG, "start scan");
     if(PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
       scanCallback = callbackContext;
-      MTTrackerManager.getInstance(mContext).startScan(this.scanTrackerCallback);
+      manager.startScan(this.scanTrackerCallback);
     } else {
       Log.d(TAG, "NO PERMISSION");
     }
@@ -101,7 +103,7 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void stopScan(CallbackContext callbackContext) {
     Log.d(TAG, "stop scan");
-    MTTrackerManager.getInstance(mContext).stopScan();
+    manager.stopScan();
   }
 
   private void find(CallbackContext callbackContext, String macAddress) {
@@ -146,6 +148,5 @@ public class MinewTrackerkit extends CordovaPlugin {
     PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
     return;
   }
-
 
 }
