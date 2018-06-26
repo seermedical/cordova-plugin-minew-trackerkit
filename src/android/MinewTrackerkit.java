@@ -55,6 +55,7 @@ public class MinewTrackerkit extends CordovaPlugin {
     mContext = this.cordova.getActivity().getApplicationContext();
     peripherals = new LinkedHashMap<String, MTTracker>();
     manager = MTTrackerManager.getInstance(mContext);
+    manager.setPassword("B3agle!!");
     if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
       getRequiredPermissions();
     }
@@ -112,6 +113,10 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void connect(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "connect to: " + macAddress);
+    if (peripherals.containsKey(macAddress)) {
+      MTTracker trackerToBind = peripherals.get(macAddress);
+      manager.bindingVerify(trackerToBind, connectionCallback);
+    }
   }
 
   private void disconnect(CallbackContext callbackContext, String macAddress) {
@@ -140,6 +145,15 @@ public class MinewTrackerkit extends CordovaPlugin {
             scanCallback.sendPluginResult(result);
           }
         }
+      }
+    }
+  };
+
+  private ConnectionStateCallback connectionCallback = new ConnectionStateCallback() {
+    @Override
+    public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
+      if (success) {
+        Log.d(TAG, "success");
       }
     }
   };
