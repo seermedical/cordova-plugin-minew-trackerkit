@@ -32,6 +32,7 @@ import com.minewtech.mttrackit.interfaces.ReceiveListener;
 
 import static com.minewtech.mttrackit.enums.ConnectionState.*;
 import static com.minewtech.mttrackit.enums.TrackerModel.*;
+import static com.minewtech.mttrackit.enums.ReceiveIndex.*;
 
 import java.util.*;
 
@@ -123,6 +124,7 @@ public class MinewTrackerkit extends CordovaPlugin {
     connectCallback = callbackContext;
     if (peripherals.containsKey(macAddress)) {
       MTTracker trackerToBind = peripherals.get(macAddress);
+      // manager.bindMTTracker(macAddress);
       manager.bindingVerify(trackerToBind, connectionCallback);
     }
   }
@@ -133,11 +135,31 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void subscribeToClick(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "subscribe to: " + macAddress);
+    clickCallback = callbackContext;
+    if (peripherals.containsKey(macAddress)) {
+      MTTracker tracker = peripherals.get(macAddress);
+      tracker.setReceiveListener(receiveListener);
+    }
   }
 
   private void subscribeToStatus(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "subscribe to: " + macAddress);
   }
+
+  private ReceiveListener receiveListener = new ReceiveListener() {
+    @Override
+    public void onReceive(ReceiveIndex index) {
+      PluginResult result;
+      switch (index) {
+        case InstrucIndex_ButtonPushed:
+          if (clickCallback != null) {
+            result = new PluginResult(PluginResult.Status.OK);
+            result.setKeepCallback(true);
+            clickCallback.sendPluginResult(result);
+          }
+      }
+    }
+  };
 
   private ScanTrackerCallback scanTrackerCallback = new ScanTrackerCallback() {
     @Override
