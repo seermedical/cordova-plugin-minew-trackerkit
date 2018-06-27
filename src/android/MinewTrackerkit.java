@@ -28,6 +28,7 @@ import com.minewtech.mttrackit.interfaces.ScanTrackerCallback;
 import com.minewtech.mttrackit.interfaces.TrackerManagerListener;
 import com.minewtech.mttrackit.TrackerException;
 import com.minewtech.mttrackit.enums.ReceiveIndex;
+import com.minewtech.mttrackit.interfaces.MTTrackerListener;
 import com.minewtech.mttrackit.interfaces.ReceiveListener;
 
 import static com.minewtech.mttrackit.enums.ConnectionState.*;
@@ -124,7 +125,7 @@ public class MinewTrackerkit extends CordovaPlugin {
     connectCallback = callbackContext;
     if (peripherals.containsKey(macAddress)) {
       MTTracker trackerToBind = peripherals.get(macAddress);
-      // manager.bindMTTracker(macAddress);
+      manager.bindMTTracker(macAddress);
       manager.bindingVerify(trackerToBind, connectionCallback);
     }
   }
@@ -138,15 +139,42 @@ public class MinewTrackerkit extends CordovaPlugin {
     clickCallback = callbackContext;
     if (peripherals.containsKey(macAddress)) {
       MTTracker tracker = peripherals.get(macAddress);
-      tracker.setReceiveListener(receiveListener);
+      tracker.setReceiveListener(clickListener);
     }
   }
 
   private void subscribeToStatus(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "subscribe to: " + macAddress);
+    // disconnectCallback = callbackContext;
+    if (peripherals.containsKey(macAddress)) {
+      MTTracker tracker = peripherals.get(macAddress);
+      tracker.setTrackerListener(connectionListener);
+    }
   }
 
-  private ReceiveListener receiveListener = new ReceiveListener() {
+  private MTTrackerListener connectionListener = new MTTrackerListener() {
+    @Override
+    public void onUpdateTracker(MTTracker mtTracker) {
+    }
+
+    @Override
+    public void onUpdateConnectionState(ConnectionState connectionState) {
+      switch (connectionState) {
+        case DeviceLinkStatus_Connected:
+          Log.d(TAG, "connected");
+          break;
+        case DeviceLinkStatus_Disconnect:
+          Log.d(TAG, "disconnected");
+          break;
+        default:
+          Log.d(TAG, "connection change");
+          break;
+      }
+
+    }
+  };
+
+  private ReceiveListener clickListener = new ReceiveListener() {
     @Override
     public void onReceive(ReceiveIndex index) {
       PluginResult result;
@@ -219,11 +247,12 @@ public class MinewTrackerkit extends CordovaPlugin {
 
       ConnectionState status = tracker.getConnectionState();
       switch (status) {
-          case DeviceLinkStatus_Connected:
-            json.put("status", "connected");
-            break;
-          default:
-            json.put("status", "disconnected");
+        case DeviceLinkStatus_Connected:
+          json.put("status", "connected");
+          break;
+        default:
+          json.put("status", "disconnected");
+          break;
       }
 
       // DistanceLevel distance = tracker.getDistance();
