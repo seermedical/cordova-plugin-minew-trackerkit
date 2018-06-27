@@ -19,9 +19,9 @@ import org.json.JSONException;
 
 import com.minewtech.mttrackit.MTTracker;
 import com.minewtech.mttrackit.MTTrackerManager;
+import com.minewtech.mttrackit.enums.TrackerModel;
 import com.minewtech.mttrackit.enums.BluetoothState;
 import com.minewtech.mttrackit.enums.ConnectionState;
-import com.minewtech.mttrackit.enums.TrackerModel;
 import com.minewtech.mttrackit.interfaces.ConnectionStateCallback;
 import com.minewtech.mttrackit.interfaces.OperationCallback;
 import com.minewtech.mttrackit.interfaces.ScanTrackerCallback;
@@ -30,7 +30,8 @@ import com.minewtech.mttrackit.TrackerException;
 import com.minewtech.mttrackit.enums.ReceiveIndex;
 import com.minewtech.mttrackit.interfaces.ReceiveListener;
 
-import static com.minewtech.mttrackit.enums.ConnectionState.DeviceLinkStatus_Disconnect;
+import static com.minewtech.mttrackit.enums.ConnectionState.*;
+import static com.minewtech.mttrackit.enums.TrackerModel.*;
 
 import java.util.*;
 
@@ -178,10 +179,31 @@ public class MinewTrackerkit extends CordovaPlugin {
     JSONObject json = new JSONObject();
     try {
       json.put("address", tracker.getMacAddress());
-      json.put("rssi",tracker.getRssi());
-      json.put("battery",tracker.getBattery());
-      ConnectionState connectionState = tracker.getConnectionState();
-      TrackerModel name = tracker.getName();
+      json.put("rssi", tracker.getRssi());
+      json.put("battery", tracker.getBattery());
+
+      TrackerModel model = tracker.getName();
+      switch (model) {
+        case MODEL_F4S:
+          json.put("name", "F4S");
+          break;
+        case MODEL_Finder:
+          json.put("name", "Finder");
+          break;
+        default:
+          json.put("name", null);
+          break;
+      }
+
+      ConnectionState status = tracker.getConnectionState();
+      switch (status) {
+          case DeviceLinkStatus_Connected:
+            json.put("status", "connected");
+            break;
+          default:
+            json.put("status", "disconnected");
+      }
+
       // DistanceLevel distance = tracker.getDistance();
     } catch (JSONException e) { // this shouldn't happen
       e.printStackTrace();
