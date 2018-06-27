@@ -38,9 +38,15 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private static final String TAG = "MinewTrackerkit";
   private static Context mContext;
-  private CallbackContext scanCallback;
-  private String bindAddress;
 
+  // this is where the cordova callbacks get put so that the MT blocks can use them
+  private CallbackContext scanCallback;
+  private CallbackContext connectCallback;
+  private CallbackContext clickCallback;
+  private CallbackContext disconnectCallback;
+  private CallbackContext reconnectCallback;
+
+  // central tracker manager and list of buttons
   private static Map<String, MTTracker> peripherals;
   private static MTTrackerManager manager;
 
@@ -113,6 +119,7 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void connect(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "connect to: " + macAddress);
+    connectCallback = callbackContext;
     if (peripherals.containsKey(macAddress)) {
       MTTracker trackerToBind = peripherals.get(macAddress);
       manager.bindingVerify(trackerToBind, connectionCallback);
@@ -140,7 +147,7 @@ public class MinewTrackerkit extends CordovaPlugin {
           String mac = tracker.getMacAddress();
           if (!peripherals.containsKey(mac)) {
             peripherals.put(mac, tracker);
-            result = new PluginResult(PluginResult.Status.OK, mac);
+            result = new PluginResult(PluginResult.Status.OK, asJSONObject(tracker));
             result.setKeepCallback(true);
             scanCallback.sendPluginResult(result);
           }
@@ -152,11 +159,35 @@ public class MinewTrackerkit extends CordovaPlugin {
   private ConnectionStateCallback connectionCallback = new ConnectionStateCallback() {
     @Override
     public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
-      if (success) {
-        Log.d(TAG, "success");
+      PluginResult result;
+      if (connectCallback != null) {
+        if (success) {
+          result = new PluginResult(PluginResult.Status.OK);
+          connectCallback.sendPluginResult(result);
+          return;
+        } else {
+          result = new PluginResult(PluginResult.Status.ERROR);
+          connectCallback.sendPluginResult(result);
+          return;
+        }
       }
     }
   };
+
+  private JSONObject asJSONObject(MTTracker tracker) {
+    JSONObject json = new JSONObject();
+    try {
+      json.put("address", tracker.getMacAddress());
+      json.put("rssi",tracker.getRssi());
+      json.put("battery",tracker.getBattery());
+      ConnectionState connectionState = tracker.getConnectionState();
+      TrackerModel name = tracker.getName();
+      // DistanceLevel distance = tracker.getDistance();
+    } catch (JSONException e) { // this shouldn't happen
+      e.printStackTrace();
+    }
+    return json;
+  }
 
   private void getRequiredPermissions() {
     PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
