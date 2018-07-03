@@ -19,30 +19,42 @@ import org.json.JSONException;
 
 import com.minewtech.mttrackit.MTTracker;
 import com.minewtech.mttrackit.MTTrackerManager;
-import com.minewtech.mttrackit.enums.BluetoothState;
-import com.minewtech.mttrackit.enums.ConnectionState;
-import com.minewtech.mttrackit.enums.TrackerModel;
+import com.minewtech.mttrackit.TrackerException;
+
 import com.minewtech.mttrackit.interfaces.ConnectionStateCallback;
 import com.minewtech.mttrackit.interfaces.OperationCallback;
 import com.minewtech.mttrackit.interfaces.ScanTrackerCallback;
+import com.minewtech.mttrackit.interfaces.MTTrackerListener;
 import com.minewtech.mttrackit.interfaces.TrackerManagerListener;
-import com.minewtech.mttrackit.TrackerException;
-import com.minewtech.mttrackit.enums.ReceiveIndex;
 import com.minewtech.mttrackit.interfaces.ReceiveListener;
 
-import static com.minewtech.mttrackit.enums.ConnectionState.DeviceLinkStatus_Disconnect;
+import com.minewtech.mttrackit.enums.TrackerModel;
+import static com.minewtech.mttrackit.enums.TrackerModel.*;
+import com.minewtech.mttrackit.enums.BluetoothState;
+import com.minewtech.mttrackit.enums.ConnectionState;
+import static com.minewtech.mttrackit.enums.ConnectionState.*;
+import com.minewtech.mttrackit.enums.ReceiveIndex;
+import static com.minewtech.mttrackit.enums.ReceiveIndex.*;
 
-// import java.util.Date;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class MinewTrackerkit extends CordovaPlugin {
 
   private static final String TAG = "MinewTrackerkit";
   private static Context mContext;
+
+  // this is where the cordova callbacks get put so that the MT blocks can use them
   private CallbackContext scanCallback;
-  private String bindAddress;
+  private CallbackContext findCallback;
+  private CallbackContext connectCallback;
+  private CallbackContext clickCallback;
+  private CallbackContext disconnectCallback;
+  private CallbackContext unbindCallback;
+
+  // central tracker manager and list of buttons
+  private static Map<String, MTTracker> peripherals;
+  private static MTTrackerManager manager;
+  private static MTTracker myTracker;
 
   // Android 23 requires new permissions for BluetoothLeScanner.startScan()
   private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -53,12 +65,18 @@ public class MinewTrackerkit extends CordovaPlugin {
     super.initialize(cordova, webView);
     Log.d(TAG, "Initializing MinewTrackerkit");
     mContext = this.cordova.getActivity().getApplicationContext();
-    getRequiredPermissions();
+    peripherals = new LinkedHashMap<String, MTTracker>();
+    manager = MTTrackerManager.getInstance(mContext);
+    manager.setPassword("B3agle!!");
+    if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
+      getRequiredPermissions();
+    }
   }
 
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    if (action.equals("bleStatus")) {
-      this.bleStatus(callbackContext);
+    if (action.equals("find")) {
+      String macAddress = args.getString(0);
+      this.find(callbackContext, macAddress);
       return true;
     } else if (action.equals("startScan")) {
       this.startScan(callbackContext);
@@ -66,108 +84,246 @@ public class MinewTrackerkit extends CordovaPlugin {
     } else if (action.equals("stopScan")) {
       this.stopScan(callbackContext);
       return true;
-    } else if (action.equals("bind")) {
+    } else if (action.equals("connect")) {
       String macAddress = args.getString(0);
-      this.bind(callbackContext, macAddress);
+      this.connect(callbackContext, macAddress);
+      return true;
+    } else if (action.equals("disconnect")) {
+      String macAddress = args.getString(0);
+      this.disconnect(callbackContext, macAddress);
+      return true;
+    } else if (action.equals("subscribeToClick")) {
+      String macAddress = args.getString(0);
+      this.subscribeToClick(callbackContext, macAddress);
+      return true;
+    } else if (action.equals("subscribeToStatus")) {
+      String macAddress = args.getString(0);
+      this.subscribeToStatus(callbackContext, macAddress);
       return true;
     }
     return false;
   }
 
-  private void bleStatus(CallbackContext callbackContext) {
-    BluetoothState bluetoothState = MTTrackerManager.getInstance(mContext).checkBluetoothState();
-    Log.d(TAG, "status: " + bluetoothState);
-    switch (bluetoothState) {
-        case BluetoothStateNotSupported:
-//          final PluginResult result = new PluginResult(PluginResult.Status.OK, status);
-          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "not supported"));
-        case BluetoothStatePowerOff:
-          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 0));
-        case BluetoothStatePowerOn:
-          callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, 1));
-    }
-
-  }
-
   private void startScan(CallbackContext callbackContext) {
     Log.d(TAG, "start scan");
-    scanCallback = callbackContext;
-    MTTrackerManager.getInstance(mContext).startScan(this.scanTrackerCallback);
+    if(PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
+      scanCallback = callbackContext;
+      manager.startScan(this.scanTrackerCallback);
+    } else {
+      Log.d(TAG, "NO PERMISSION");
+    }
   }
 
   private void stopScan(CallbackContext callbackContext) {
     Log.d(TAG, "stop scan");
-    MTTrackerManager.getInstance(mContext).stopScan();
+    manager.stopScan();
   }
+
+  private void find(CallbackContext callbackContext, String macAddress) {
+    // connectCallback = null;
+    Log.d(TAG, "find: " + macAddress);
+    findCallback = callbackContext;
+    myTracker = manager.bindMTTracker(macAddress);
+    manager.bindingVerify(myTracker, new ConnectionStateCallback() {
+      @Override
+      public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
+      }
+    });
+    manager.setTrackerManangerListener(new TrackerManagerListener() {
+      PluginResult result;
+      @Override
+      public void onUpdateBindTrackers(ArrayList<MTTracker> mtTrackers) {
+
+      }
+
+      @Override
+      public void onUpdateConnectionState(MTTracker tracker, ConnectionState status) {
+        switch (status) {
+          case DeviceLinkStatus_Connected:
+            Log.d(TAG,"Connected");
+            result = new PluginResult(PluginResult.Status.OK, asJSONObject(tracker));
+            findCallback.sendPluginResult(result);
+            return;
+          default:
+            Log.d(TAG,"Disconnected");
+            result = new PluginResult(PluginResult.Status.ERROR);
+            findCallback.sendPluginResult(result);
+            return;
+        }
+      }
+    });
+  }
+
+  private void connect(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "connect to: " + macAddress);
+    connectCallback = callbackContext;
+    if (peripherals.containsKey(macAddress)) {
+      MTTracker trackerToBind = peripherals.get(macAddress);
+      myTracker = trackerToBind;
+      manager.bindingVerify(trackerToBind, this.connectionCallback);
+    }
+  }
+
+  private void disconnect(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "disconnect: " + macAddress);
+    unbindCallback = callbackContext;
+    manager.unBindMTTracker(macAddress, new OperationCallback() {
+      @Override
+      public void onOperation(boolean success, TrackerException mtException) {
+        if (success) {
+          myTracker = null;
+          PluginResult result = new PluginResult(PluginResult.Status.OK);
+          unbindCallback.sendPluginResult(result);
+        }
+      }
+    });
+  }
+
+  private void subscribeToClick(CallbackContext callbackContext, String macAddress) {
+    Log.d(TAG, "subscribe to: " + macAddress);
+    clickCallback = callbackContext;
+    if (myTracker.getMacAddress().equals(macAddress)) {
+      myTracker.setReceiveListener(clickListener);
+    } else {
+      // do something
+    }
+  }
+
+  private void subscribeToStatus(CallbackContext callbackContext, String macAddress) {
+    if (myTracker.getMacAddress().equals(macAddress)) {
+      Log.d(TAG, "subscribe to status: " + macAddress);
+      disconnectCallback = callbackContext;
+      myTracker.setTrackerListener(connectionListener);
+    } else {
+      // do something
+    }
+  }
+
+  private MTTrackerListener connectionListener = new MTTrackerListener() {
+    @Override
+    public void onUpdateTracker(MTTracker mtTracker) {
+    }
+
+    @Override
+    public void onUpdateConnectionState(ConnectionState connectionState) {
+      PluginResult result;
+      switch (connectionState) {
+        case DeviceLinkStatus_Connected:
+          Log.d(TAG, "connected");
+          if (disconnectCallback != null) {
+            result = new PluginResult(PluginResult.Status.OK);
+            result.setKeepCallback(true);
+            disconnectCallback.sendPluginResult(result);
+          }
+          break;
+        case DeviceLinkStatus_Disconnect:
+          Log.d(TAG, "disconnected");
+          if (disconnectCallback != null) {
+            result = new PluginResult(PluginResult.Status.ERROR);
+            result.setKeepCallback(true);
+            disconnectCallback.sendPluginResult(result);
+          }
+          break;
+        default:
+          Log.d(TAG, "connection change");
+          break;
+      }
+
+    }
+  };
+
+  private ReceiveListener clickListener = new ReceiveListener() {
+    @Override
+    public void onReceive(ReceiveIndex index) {
+      PluginResult result;
+      switch (index) {
+        case InstrucIndex_ButtonPushed:
+          if (clickCallback != null) {
+            result = new PluginResult(PluginResult.Status.OK);
+            result.setKeepCallback(true);
+            clickCallback.sendPluginResult(result);
+          }
+      }
+    }
+  };
 
   private ScanTrackerCallback scanTrackerCallback = new ScanTrackerCallback() {
     @Override
     public void onScannedTracker(LinkedList<MTTracker> trackers) {
-        for (MTTracker tracker : trackers) {
-          if (scanCallback != null) {
-            String mac = tracker.getMacAddress();
-            PluginResult result = new PluginResult(PluginResult.Status.OK, mac);
+      PluginResult result;
+      for (MTTracker tracker : trackers) {
+        if (scanCallback != null) {
+          String mac = tracker.getMacAddress();
+          if (!peripherals.containsKey(mac)) {
+            peripherals.put(mac, tracker);
+            result = new PluginResult(PluginResult.Status.OK, asJSONObject(tracker));
             result.setKeepCallback(true);
             scanCallback.sendPluginResult(result);
           }
         }
+      }
     }
   };
-
-  private ScanTrackerCallback bindTrackerCallback = new ScanTrackerCallback() {
-    @Override
-    public void onScannedTracker(LinkedList<MTTracker> trackers) {
-        for (MTTracker tracker : trackers) {
-          if (bindAddress != null) {
-            String mac = tracker.getMacAddress();
-            if (mac.equals(bindAddress)) {
-              Log.d(TAG, "found tag will try to bind");
-              MTTrackerManager manager = MTTrackerManager.getInstance(mContext);
-              manager.bindingVerify(tracker,connectionCallback);
-              MTTracker bindTracker = manager.bindMTTracker(mac);
-              bindTracker.setReceiveListener(receiveListener);
-            }
-          }
-        }
-    }
-  };
-
-  private void bind(CallbackContext callbackContext, String macAddress) {
-    Log.d(TAG, "binding to: " + macAddress);
-    MTTrackerManager manager = MTTrackerManager.getInstance(mContext);
-    manager.setPassword("B3agle!!");
-    bindAddress = macAddress;
-    scanCallback = null;
-    manager.startScan(this.bindTrackerCallback);
-  }
 
   private ConnectionStateCallback connectionCallback = new ConnectionStateCallback() {
-      @Override
-      public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
-          if (success) {
-              Log.d(TAG,"bind success");
-          } else {
-              Log.d(TAG,"bind fail");
-          }
+    @Override
+    public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
+      if (connectCallback != null) {
+        PluginResult result;
+        if (success) {
+          myTracker = manager.bindMTTracker(myTracker.getMacAddress());
+          result = new PluginResult(PluginResult.Status.OK);
+          connectCallback.sendPluginResult(result);
+          return;
+        } else {
+          result = new PluginResult(PluginResult.Status.ERROR);
+          connectCallback.sendPluginResult(result);
+          return;
+        }
       }
-  };
-
-  private ReceiveListener receiveListener = new ReceiveListener() {
-      @Override
-      public void onReceive(ReceiveIndex index) {
-          switch (index) {
-              case InstrucIndex_ButtonPushed:
-              Log.d(TAG, "The button on the device is pressed");
-          }
-      }
-  };
-
-  private void getRequiredPermissions() {
-    if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
-      PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
-      return;
     }
+  };
+
+  private JSONObject asJSONObject(MTTracker tracker) {
+    JSONObject json = new JSONObject();
+    try {
+      json.put("address", tracker.getMacAddress());
+      json.put("rssi", tracker.getRssi());
+      json.put("battery", tracker.getBattery());
+
+      TrackerModel model = tracker.getName();
+      switch (model) {
+        case MODEL_F4S:
+          json.put("model", "F4S");
+          break;
+        case MODEL_Finder:
+          json.put("model", "Finder");
+          break;
+        default:
+          json.put("model", null);
+          break;
+      }
+
+      ConnectionState status = tracker.getConnectionState();
+      switch (status) {
+        case DeviceLinkStatus_Connected:
+          json.put("status", "connected");
+          break;
+        default:
+          json.put("status", "disconnected");
+          break;
+      }
+
+      // DistanceLevel distance = tracker.getDistance();
+    } catch (JSONException e) { // this shouldn't happen
+      e.printStackTrace();
+    }
+    return json;
   }
 
+  private void getRequiredPermissions() {
+    PermissionHelper.requestPermission(this, REQUEST_ACCESS_COARSE_LOCATION, ACCESS_COARSE_LOCATION);
+    return;
+  }
 
 }
