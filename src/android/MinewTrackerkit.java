@@ -267,13 +267,13 @@ public class MinewTrackerkit extends CordovaPlugin {
       TrackerModel model = tracker.getName();
       switch (model) {
         case MODEL_F4S:
-          json.put("name", "F4S");
+          json.put("model", "F4S");
           break;
         case MODEL_Finder:
-          json.put("name", "Finder");
+          json.put("model", "Finder");
           break;
         default:
-          json.put("name", null);
+          json.put("model", null);
           break;
       }
 
