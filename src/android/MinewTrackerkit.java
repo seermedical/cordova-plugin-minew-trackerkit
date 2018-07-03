@@ -48,6 +48,7 @@ public class MinewTrackerkit extends CordovaPlugin {
   private CallbackContext connectCallback;
   private CallbackContext clickCallback;
   private CallbackContext disconnectCallback;
+  private CallbackContext unbindCallback;
 
   // central tracker manager and list of buttons
   private static Map<String, MTTracker> peripherals;
@@ -119,6 +120,11 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void find(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "find: " + macAddress);
+    connectCallback = null;
+    myTracker = manager.bindMTTracker(macAddress);
+    manager.bindingVerify(myTracker, connectionCallback);
+    PluginResult result = new PluginResult(PluginResult.Status.OK, asJSONObject(myTracker));
+    callbackContext.sendPluginResult(result);
   }
 
   private void connect(CallbackContext callbackContext, String macAddress) {
@@ -133,14 +139,26 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void disconnect(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "disconnect: " + macAddress);
+    unbindCallback = callbackContext;
+    manager.unBindMTTracker(macAddress, new OperationCallback() {
+      @Override
+      public void onOperation(boolean success, TrackerException mtException) {
+        if (success) {
+          myTracker = null;
+          PluginResult result = new PluginResult(PluginResult.Status.OK);
+          unbindCallback.sendPluginResult(result);
+        }
+      }
+    });
   }
 
   private void subscribeToClick(CallbackContext callbackContext, String macAddress) {
     Log.d(TAG, "subscribe to: " + macAddress);
     clickCallback = callbackContext;
-    if (peripherals.containsKey(macAddress)) {
-      MTTracker tracker = peripherals.get(macAddress);
-      tracker.setReceiveListener(clickListener);
+    if (myTracker.getMacAddress().equals(macAddress)) {
+      myTracker.setReceiveListener(clickListener);
+    } else {
+      // do something
     }
   }
 
@@ -223,8 +241,8 @@ public class MinewTrackerkit extends CordovaPlugin {
   private ConnectionStateCallback connectionCallback = new ConnectionStateCallback() {
     @Override
     public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
-      PluginResult result;
       if (connectCallback != null) {
+        PluginResult result;
         if (success) {
           myTracker = manager.bindMTTracker(myTracker.getMacAddress());
           result = new PluginResult(PluginResult.Status.OK);
