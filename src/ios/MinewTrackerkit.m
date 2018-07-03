@@ -106,6 +106,8 @@
     }];
   } else {
     // TODO connect then bind
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+    [self.commandDelegate sendPluginResult:resultDisconnect callbackId:command.callbackId];
   }
 }
 
