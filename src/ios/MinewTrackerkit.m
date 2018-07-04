@@ -18,7 +18,7 @@
 }
 
 - (void)stopScan:(CDVInvokedUrlCommand *)command {
-  [manager stopScan];x
+  [manager stopScan];
 }
 
 - (void)startScan:(CDVInvokedUrlCommand *)command {
@@ -46,16 +46,18 @@
       if ([mac isEqualToString:id]) {
         [peripherals addObject:tracker];
         NSMutableDictionary *dictionary = [self asDictionary:tracker];
-        CDVPluginResult *result;
         [manager bindingVerify:tracker completion:^(BOOL success, NSError *error) {
           CDVPluginResult *result;
           if (success) {
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
           } else {
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"connection failed"];
           }
           [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         }];
+      } else {
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
       }
     }
   }];
