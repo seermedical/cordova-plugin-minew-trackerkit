@@ -18,7 +18,7 @@
 }
 
 - (void)stopScan:(CDVInvokedUrlCommand *)command {
-  [manager stopScan];
+  [manager stopScan];x
 }
 
 - (void)startScan:(CDVInvokedUrlCommand *)command {
@@ -85,7 +85,8 @@
       // success YES means operate success, else NO.
   }];
   [manager removeTracker:id];
-  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  // CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
@@ -107,7 +108,7 @@
   } else {
     // TODO connect then bind
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-    [self.commandDelegate sendPluginResult:resultDisconnect callbackId:command.callbackId];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
   }
 }
 
