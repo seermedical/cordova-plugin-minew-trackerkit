@@ -1,7 +1,6 @@
 Minew-TrackerKit
 ======
 
-From Cordova plugin template from here https://github.com/rrostt/cordova-plugin-template
 A Cordova plugin on iOS and Android to communicate with the Minew TrackerKit Framework
 
 Plugin development environment: https://github.com/seermedical/seer-beacon-tracker
@@ -74,3 +73,4 @@ Plugin development environment: https://github.com/seermedical/seer-beacon-track
 
 - [BLE template](https://github.com/seermedical/cordova-plugin-ble-central)
 - [Cordova documentation](https://cordova.apache.org/docs/en/latest/guide/hybrid/plugins/)
+- [Cordova plugin template](https://github.com/rrostt/cordova-plugin-template)
