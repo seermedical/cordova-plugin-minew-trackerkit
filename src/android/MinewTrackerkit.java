@@ -172,14 +172,16 @@ public class MinewTrackerkit extends CordovaPlugin {
     manager.unBindMTTracker(macAddress, new OperationCallback() {
       @Override
       public void onOperation(boolean success, TrackerException mtException) {
-        if (success) {
-          myTracker = null;
-          PluginResult result = new PluginResult(PluginResult.Status.OK);
-          unbindCallback.sendPluginResult(result);
-        } else {
-          PluginResult result = new PluginResult(PluginResult.Status.ERROR);
-          scanCallback.sendPluginResult(result);
-        }
+        PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+        scanCallback.sendPluginResult(result);
+        // if (success) {
+        //   myTracker = null;
+        //   PluginResult result = new PluginResult(PluginResult.Status.OK);
+        //   unbindCallback.sendPluginResult(result);
+        // } else {
+        //   PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+        //   scanCallback.sendPluginResult(result);
+        // }
       }
     });
   }
