@@ -87,8 +87,8 @@
       // success YES means operate success, else NO.
   }];
   [manager removeTracker:id];
-  // CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  // CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
