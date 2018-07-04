@@ -46,16 +46,18 @@
       if ([mac isEqualToString:id]) {
         [peripherals addObject:tracker];
         NSMutableDictionary *dictionary = [self asDictionary:tracker];
-        CDVPluginResult *result;
         [manager bindingVerify:tracker completion:^(BOOL success, NSError *error) {
           CDVPluginResult *result;
           if (success) {
             result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
           } else {
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"connection failed"];
           }
           [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         }];
+      } else {
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
       }
     }
   }];
@@ -85,7 +87,8 @@
       // success YES means operate success, else NO.
   }];
   [manager removeTracker:id];
-  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  // CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
@@ -106,6 +109,8 @@
     }];
   } else {
     // TODO connect then bind
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
   }
 }
 

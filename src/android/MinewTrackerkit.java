@@ -111,6 +111,8 @@ public class MinewTrackerkit extends CordovaPlugin {
       manager.startScan(this.scanTrackerCallback);
     } else {
       Log.d(TAG, "NO PERMISSION");
+      PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+      scanCallback.sendPluginResult(result);
     }
   }
 
@@ -170,11 +172,16 @@ public class MinewTrackerkit extends CordovaPlugin {
     manager.unBindMTTracker(macAddress, new OperationCallback() {
       @Override
       public void onOperation(boolean success, TrackerException mtException) {
-        if (success) {
-          myTracker = null;
-          PluginResult result = new PluginResult(PluginResult.Status.OK);
-          unbindCallback.sendPluginResult(result);
-        }
+        PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+        scanCallback.sendPluginResult(result);
+        // if (success) {
+        //   myTracker = null;
+        //   PluginResult result = new PluginResult(PluginResult.Status.OK);
+        //   unbindCallback.sendPluginResult(result);
+        // } else {
+        //   PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+        //   scanCallback.sendPluginResult(result);
+        // }
       }
     });
   }
@@ -185,7 +192,9 @@ public class MinewTrackerkit extends CordovaPlugin {
     if (myTracker.getMacAddress().equals(macAddress)) {
       myTracker.setReceiveListener(clickListener);
     } else {
-      // do something
+      // try connect?
+      PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+      scanCallback.sendPluginResult(result);
     }
   }
 
@@ -196,6 +205,8 @@ public class MinewTrackerkit extends CordovaPlugin {
       myTracker.setTrackerListener(connectionListener);
     } else {
       // do something
+      PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+      scanCallback.sendPluginResult(result);
     }
   }
 
