@@ -19,6 +19,8 @@
 
 - (void)stopScan:(CDVInvokedUrlCommand *)command {
   [manager stopScan];
+  CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+  [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
 - (void)startScan:(CDVInvokedUrlCommand *)command {
