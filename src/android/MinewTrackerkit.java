@@ -118,7 +118,11 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void stopScan(CallbackContext callbackContext) {
     Log.d(TAG, "stop scan");
+    peripherals = new LinkedHashMap<String, MTTracker>();
+    scanCallback = null;
     manager.stopScan();
+    PluginResult result = new PluginResult(PluginResult.Status.OK);
+    callbackContext.sendPluginResult(result);
   }
 
   private void find(CallbackContext callbackContext, String macAddress) {
@@ -177,6 +181,10 @@ public class MinewTrackerkit extends CordovaPlugin {
             myTracker = null;
             peripherals = new LinkedHashMap<String, MTTracker>();
             manager = MTTrackerManager.getInstance(mContext);
+            findCallback = null;
+            connectCallback = null;
+            disconnectCallback = null;
+            clickCallback = null;
             PluginResult result = new PluginResult(PluginResult.Status.OK);
             unbindCallback.sendPluginResult(result);
           } else {
