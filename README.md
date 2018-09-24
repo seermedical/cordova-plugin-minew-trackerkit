@@ -1,6 +1,10 @@
 Minew-TrackerKit
 ======
 
+# Installation
+
+`cordova plugin add https://github.com/seermedical/cordova-plugin-minew-trackerkit.git`
+
 A Cordova plugin on iOS and Android to communicate with the Minew TrackerKit Framework
 
 Plugin development environment: https://github.com/seermedical/seer-beacon-tracker
