@@ -71,16 +71,21 @@
   NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
   NSArray *array = [trackers allObjects];
   // NSLog(@"number of periperhals: %d",[array count]);
-  MTTracker *trackerToBind = [array objectAtIndex:0];
-  [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
-    CDVPluginResult *result;
-    if (success) {
-      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    } else {
-      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-    }
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-  }];
+  NSInteger N = [trackers count];
+  CDVPluginResult *result;
+  if (N < 1) {
+    result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
+  } else {
+    MTTracker *trackerToBind = [array objectAtIndex:0];
+    [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
+      if (success) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+      } else {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"connection failed"];
+      }
+      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }];
+  }
 }
 
 - (void)disconnect:(CDVInvokedUrlCommand *)command {
