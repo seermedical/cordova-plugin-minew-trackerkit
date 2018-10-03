@@ -48,7 +48,7 @@ public class MinewTrackerkit extends CordovaPlugin {
   private CallbackContext findCallback;
   private CallbackContext connectCallback;
   private CallbackContext clickCallback;
-  private CallbackContext disconnectCallback;
+  private CallbackContext disconnectCallback; // the subscription callback
   private CallbackContext unbindCallback;
 
   // central tracker manager and list of buttons
@@ -167,6 +167,9 @@ public class MinewTrackerkit extends CordovaPlugin {
       MTTracker trackerToBind = peripherals.get(macAddress);
       myTracker = trackerToBind;
       manager.bindingVerify(trackerToBind, this.connectionCallback);
+    } else {
+      PluginResult result = new PluginResult(PluginResult.Status.ERROR);
+      connectCallback.sendPluginResult(result);
     }
   }
 
@@ -294,6 +297,7 @@ public class MinewTrackerkit extends CordovaPlugin {
     public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
       if (connectCallback != null) {
         PluginResult result;
+        // TODO: investigate holding open this callback result.setKeepCallback(true) 
         if (success) {
           myTracker = manager.bindMTTracker(myTracker.getMacAddress());
           result = new PluginResult(PluginResult.Status.OK);
@@ -338,7 +342,6 @@ public class MinewTrackerkit extends CordovaPlugin {
           break;
       }
 
-      // DistanceLevel distance = tracker.getDistance();
     } catch (JSONException e) { // this shouldn't happen
       e.printStackTrace();
     }
