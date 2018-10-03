@@ -72,7 +72,7 @@
   NSArray *array = [trackers allObjects];
   // NSLog(@"number of periperhals: %d",[array count]);
   NSInteger N = [trackers count];
-  CDVPluginResult *result;
+  __block CDVPluginResult *result;
   if (N < 1) {
     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
   } else {
@@ -95,7 +95,6 @@
   }];
   [manager removeTracker:id];
   CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-  // CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
@@ -104,20 +103,26 @@
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
   NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
   NSArray *array = [trackers allObjects];
-  MTTracker *trackerToSubscribe = [array objectAtIndex:0];
-  Connection status = trackerToSubscribe.connection;
-  if (status == ConnectionConnected) {
-    [trackerToSubscribe didReceive:^(Receiving rec) {
-        if(rec == ReceivingButtonPushed) {
-          CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:id];
-          [result setKeepCallback:[NSNumber numberWithBool:YES]];
-          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-        }
-    }];
-  } else {
-    // TODO connect then bind
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+  NSInteger N = [trackers count];
+  if (N < 1) {
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+  } else {
+    MTTracker *trackerToSubscribe = [array objectAtIndex:0];
+    Connection status = trackerToSubscribe.connection;
+    if (status == ConnectionConnected) {
+      [trackerToSubscribe didReceive:^(Receiving rec) {
+          if(rec == ReceivingButtonPushed) {
+            CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:id];
+            [result setKeepCallback:[NSNumber numberWithBool:YES]];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+          }
+      }];
+    } else {
+      // TODO connect then bind
+      CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"connection failed"];
+      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }
   }
 }
 
@@ -127,28 +132,41 @@
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"mac == %@", id];
   NSSet *trackers = [peripherals filteredSetUsingPredicate:predicate];
   NSArray *array = [trackers allObjects];
-  MTTracker *trackerToSubscribe = [array objectAtIndex:0];
-  [trackerToSubscribe didConnectionChange:^(Connection con){
-    switch(con){
-        case ConnectionConnecting:
-            NSLog(@"Connection to the Tracker");
+  NSInteger N = [trackers count];
+  if (N < 1) {
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+  } else {
+    MTTracker *trackerToSubscribe = [array objectAtIndex:0];
+    [trackerToSubscribe didConnectionChange:^(Connection con){
+      switch(con){
+          case ConnectionConnecting:
+            NSLog(@"Connecting to the tracker");
             break;
-        case ConnectionConnected: {
-          NSLog(@"Tracker is connected");
-          CDVPluginResult *resultConnect = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-          [resultConnect setKeepCallback:[NSNumber numberWithBool:YES]];
-          [self.commandDelegate sendPluginResult:resultConnect callbackId:command.callbackId];
-          break;
-        }
-        case ConnectionDisconnected: {
-          NSLog(@"Tracker is disconnected");
-          CDVPluginResult *resultDisconnect = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-          [resultDisconnect setKeepCallback:[NSNumber numberWithBool:YES]];
-          [self.commandDelegate sendPluginResult:resultDisconnect callbackId:command.callbackId];
-          break;
-        }
-    };
-  }];
+          case ConnectionConnected: {
+            NSLog(@"Tracker is connected");
+            CDVPluginResult *resultConnect = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+            [resultConnect setKeepCallback:[NSNumber numberWithBool:YES]];
+            [self.commandDelegate sendPluginResult:resultConnect callbackId:command.callbackId];
+            break;
+          }
+          case ConnectionDisconnected: {
+            NSLog(@"Tracker is disconnected");
+            CDVPluginResult *resultDisconnect = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            [resultDisconnect setKeepCallback:[NSNumber numberWithBool:YES]];
+            [self.commandDelegate sendPluginResult:resultDisconnect callbackId:command.callbackId];
+            break;
+          }
+          case ConnectionConnectFailed: {
+            NSLog(@"Tracker connection failed");
+            CDVPluginResult *resultDisconnect = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+            [resultDisconnect setKeepCallback:[NSNumber numberWithBool:YES]];
+            [self.commandDelegate sendPluginResult:resultDisconnect callbackId:command.callbackId];
+            break;
+          }
+      };
+    }];
+  }
 }
 
 - (NSMutableDictionary *)asDictionary:(MTTracker *)tracker {
