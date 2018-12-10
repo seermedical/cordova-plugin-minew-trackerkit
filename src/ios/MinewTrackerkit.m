@@ -46,20 +46,19 @@
       MTTracker *tracker = trackers[i];
       NSString *mac = tracker.mac; // mac address
       if ([mac isEqualToString:id]) {
+        NSLog(@"MT: found tracker");
         [peripherals addObject:tracker];
+        [manager stopScan];
         NSMutableDictionary *dictionary = [self asDictionary:tracker];
         [manager bindingVerify:tracker completion:^(BOOL success, NSError *error) {
-          CDVPluginResult *result;
-          if (success) {
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
-          } else {
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"connection failed"];
-          }
-          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-        }];
-      } else {
-        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
+        CDVPluginResult *result;
+        if (success) {
+          result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dictionary];
+        } else {
+          result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"connection failed"];
+        }
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+      }];
       }
     }
   }];
@@ -94,6 +93,7 @@
       // success YES means operate success, else NO.
   }];
   [manager removeTracker:id];
+  [self pluginInitialize];
   CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
   [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
