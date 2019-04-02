@@ -1,5 +1,5 @@
 {
-  "name": "cordova-plugin-minew-trackerkit",
+  "name": "@seermedical/cordova-plugin-minew-trackerkit",
   "version": "1.0.0",
   "cordova": {
     "id": "cordova-plugin-minew-trackerkit",
@@ -8,5 +8,24 @@
       "ios"
     ]
   },
-  "description": "A starting point for a Cordova Plugin"
+  "description": "A Cordova plugin for communicating with the minew trackerkit",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seermedical/cordova-plugin-minew-trackerkit.git"
+  },
+  "keywords": [
+    "cordova",
+    "minew",
+    "tracerkit",
+    "seer",
+    "medical",
+    "beagle"
+  ],
+  "author": "Seer Medical",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/seermedical/cordova-plugin-minew-trackerkit/issues"
+  },
+  "homepage": "https://github.com/seermedical/cordova-plugin-minew-trackerkit#readme"
 }
+
