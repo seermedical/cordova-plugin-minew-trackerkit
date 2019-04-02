@@ -65,7 +65,6 @@ public class MinewTrackerkit extends CordovaPlugin {
     super.initialize(cordova, webView);
     Log.d(TAG, "Initializing MinewTrackerkit");
     mContext = this.cordova.getActivity().getApplicationContext();
-    peripherals = new LinkedHashMap<String, MTTracker>();
     manager = MTTrackerManager.getInstance(mContext);
     manager.setPassword("B3agle!!");
     if(!PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
@@ -106,6 +105,8 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void startScan(CallbackContext callbackContext) {
     Log.d(TAG, "start scan");
+    peripherals = new LinkedHashMap<String, MTTracker>();
+
     if(PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION)) {
       scanCallback = callbackContext;
       manager.startScan(this.scanTrackerCallback);
@@ -118,7 +119,6 @@ public class MinewTrackerkit extends CordovaPlugin {
 
   private void stopScan(CallbackContext callbackContext) {
     Log.d(TAG, "stop scan");
-    peripherals = new LinkedHashMap<String, MTTracker>();
     scanCallback = null;
     manager.stopScan();
     PluginResult result = new PluginResult(PluginResult.Status.OK);
@@ -181,8 +181,6 @@ public class MinewTrackerkit extends CordovaPlugin {
         @Override
         public void onOperation(boolean success, TrackerException mtException) {
           myTracker = null;
-          peripherals = new LinkedHashMap<String, MTTracker>();
-          manager = MTTrackerManager.getInstance(mContext);
           findCallback = null;
           connectCallback = null;
           disconnectCallback = null;
