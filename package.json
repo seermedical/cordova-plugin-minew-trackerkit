@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-minew-trackerkit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "cordova": {
     "id": "cordova-plugin-minew-trackerkit",
     "platforms": [
