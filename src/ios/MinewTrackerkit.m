@@ -12,7 +12,6 @@
 
     [super pluginInitialize];
 
-    peripherals = [NSMutableSet set];
     manager = [MTTrackerManager sharedInstance];
     manager.password = @"B3agle!!";
 }
@@ -24,6 +23,9 @@
 }
 
 - (void)startScan:(CDVInvokedUrlCommand *)command {
+  
+  peripherals = [NSMutableSet set];
+
   [manager startScan:^(NSArray<MTTracker *> *trackers){
     NSInteger N = [trackers count];
     for(NSInteger i = 0; i < N; i ++){
@@ -40,6 +42,8 @@
 
 - (void)find:(CDVInvokedUrlCommand *)command {
   NSString* id = [command.arguments objectAtIndex:0];
+  peripherals = [NSMutableSet set];
+
   [manager startScan:^(NSArray<MTTracker *> *trackers){
     NSInteger N = [trackers count];
     for(NSInteger i = 0; i < N; i ++){
@@ -74,6 +78,7 @@
   __block CDVPluginResult *result;
   if (N < 1) {
     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"cant find id"];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
   } else {
     MTTracker *trackerToBind = [array objectAtIndex:0];
     [manager bindingVerify:trackerToBind completion:^(BOOL success, NSError *error) {
