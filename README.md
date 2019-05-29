@@ -116,7 +116,7 @@ done
 # Minew Resources
 
 - [SDK for android and ios](http://docs.beaconyun.com/TrackerKit/iOS_MinewTrackerKit_Software_Development_Kit_Guide_en/)
-- [Minew Libraries and Framework](https://api.beaconyun.com/d/ba7627b8b03f4cb6a4a1/?p=/iOS&mode=list)
+- [Minew Libraries and Framework](https://docs.beaconyun.com/)
 
 # General Resources
 
