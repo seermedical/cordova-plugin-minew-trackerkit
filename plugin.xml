@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="minew-trackerkit"
-    version="1.0.0">
+    version="2.0.0">
     <name>MinewTrackerkit</name>
     <description></description>
     <license>MIT</license>
@@ -10,11 +10,17 @@
     <repo>https://github.com/seermedical/cordova-plugin-minew-trackerkit.git</repo>
     <issue>https://github.com/seermedical/cordova-plugin-minew-trackerkit/issues</issue>
 
-    <!-- android -->
-    <platform name="android">
+    <platform name="android" kotlin="1.3.41">
+      <hook type="after_plugin_add" src="hooks/support-kotlin.js" />
+      <hook type="after_platform_add" src="hooks/support-kotlin.js" />
+      <framework src="org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41" />
+      <apply-plugin>kotlin-android-extensions</apply-plugin>
+      <apply-plugin>kotlin-kapt</apply-plugin>
+      <hook type="before_plugin_rm" src="hooks/on-uninstall.js" />
+      <hook type="before_plugin_uninstall" src="hooks/on-uninstall.js" />
+
       <js-module src="www/plugin.js" name="plugin">
         <runs/>
-        <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
         <clobbers target="MinewTrackerkit" />
       </js-module>
       <config-file target="res/xml/config.xml" parent="/*">
@@ -25,18 +31,31 @@
       </config-file>
       <config-file target="AndroidManifest.xml" parent="/manifest">
         <uses-sdk
-            android:minSdkVersion="18"
-            android:targetSdkVersion="26" />
+            android:minSdkVersion="21"
+            android:targetSdkVersion="29" />
         <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
         <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
         <uses-permission android:name="android.permission.BLUETOOTH" />
         <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
         <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+        <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
       </config-file>
-
-      <source-file src="src/android/MinewTrackerkit.java" target-dir="src/com/minew/" />
-
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+          <service
+              android:name="com.minew.ForegroundService"
+              android:enabled="true"
+              android:exported="true"
+              android:stopWithTask="true">
+          </service>
+      </config-file> 
+      <source-file src="src/android/ButtonData.kt" target-dir="app/src/main/java/com/minew" />
+      <source-file src="src/android/ButtonDataDao.kt" target-dir="app/src/main/java/com/minew" />
+      <source-file src="src/android/DBWorkerThread.kt" target-dir="app/src/main/java/com/minew" />
+      <source-file src="src/android/SeerDatabase.kt" target-dir="app/src/main/java/com/minew" />
+      <source-file src="src/android/ForegroundService.java" target-dir="app/src/main/java/com/minew" />
+      <source-file src="src/android/MinewTrackerkit.java" target-dir="app/src/main/java/com/minew" />
       <framework src="src/android/MinewTrackerkit.gradle" custom="true" type="gradleReference" />
+      <framework src="./build-extras.gradle" custom="true" type="gradleReference"/>
       <resource-file src="src/android/libs/MTTrackerKit.aar" target="libs/MTTrackerKit.aar" />
     </platform>
 
@@ -54,7 +73,14 @@
 
         <header-file src="src/ios/MinewTrackerkit.h" />
         <source-file src="src/ios/MinewTrackerkit.m" />
-
+        <header-file src="src/ios/NotificationService.h" />
+        <source-file src="src/ios/NotificationService.m" />
+        <header-file src="src/ios/AppDelegate+CoreDataService.h" />
+        <source-file src="src/ios/AppDelegate+CoreDataService.m" />
+        <source-file src="src/ios/CoreDataService.swift" />
+        <source-file src="src/ios/Seer.xcdatamodeld" />
+        <framework src="CoreData.framework"/>
         <framework src="src/ios/MTTrackit.framework" custom="true" embed="true"/>
+        <dependency id="cordova-plugin-add-swift-support" version="2.0.2"/>
     </platform>
 </plugin>
