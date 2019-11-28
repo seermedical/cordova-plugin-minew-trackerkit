@@ -3,7 +3,6 @@
 package com.minew;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -16,7 +15,6 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
-import org.apache.cordova.PluginResult.Status;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,28 +33,16 @@ import com.minewtech.mttrackit.interfaces.TrackerManagerListener;
 import com.minewtech.mttrackit.interfaces.ReceiveListener;
 
 import com.minewtech.mttrackit.enums.TrackerModel;
-import static com.minewtech.mttrackit.enums.TrackerModel.*;
-import com.minewtech.mttrackit.enums.BluetoothState;
 import com.minewtech.mttrackit.enums.ConnectionState;
-import static com.minewtech.mttrackit.enums.ConnectionState.*;
 import com.minewtech.mttrackit.enums.ReceiveIndex;
-import static com.minewtech.mttrackit.enums.ReceiveIndex.*;
+import com.seermedical.seergp.MainActivity;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 
-import android.content.Intent;
-import android.content.Context;
-import android.app.Service;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.os.IBinder;
-import android.os.Bundle;
-import android.annotation.TargetApi;
+import android.app.PendingIntent;
 
 import static com.minewtech.mttrackit.enums.BluetoothState.BluetoothStatePowerOn;
 
@@ -79,6 +65,7 @@ public class MinewTrackerkit extends CordovaPlugin {
     private static Map<String, MTTracker> peripherals;
     private static MTTrackerManager manager;
     private static MTTracker myTracker;
+    private static String myTrackerAddress;
 
     // Android 23 requires new permissions for BluetoothLeScanner.startScan()
     private static final String ACCESS_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -122,8 +109,8 @@ public class MinewTrackerkit extends CordovaPlugin {
 
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
         if (action.equals("find")) {
-            String macAddress = args.getString(0);
-            this.find(callbackContext, macAddress);
+            myTrackerAddress = args.getString(0);
+            this.find(callbackContext, myTrackerAddress);
             return true;
         } else if (action.equals("startScan")) {
             this.startScan(callbackContext);
@@ -132,20 +119,20 @@ public class MinewTrackerkit extends CordovaPlugin {
             this.stopScan(callbackContext);
             return true;
         } else if (action.equals("connect")) {
-            String macAddress = args.getString(0);
-            this.connect(callbackContext, macAddress);
+            myTrackerAddress = args.getString(0);
+            this.connect(callbackContext, myTrackerAddress);
             return true;
         } else if (action.equals("disconnect")) {
-            String macAddress = args.getString(0);
-            this.disconnect(callbackContext, macAddress);
+            myTrackerAddress = args.getString(0);
+            this.disconnect(callbackContext, myTrackerAddress);
             return true;
         } else if (action.equals("subscribeToClick")) {
-            String macAddress = args.getString(0);
-            this.subscribeToClick(callbackContext, macAddress);
+            myTrackerAddress = args.getString(0);
+            this.subscribeToClick(callbackContext, myTrackerAddress);
             return true;
         } else if (action.equals("subscribeToStatus")) {
-            String macAddress = args.getString(0);
-            this.subscribeToStatus(callbackContext, macAddress);
+            myTrackerAddress = args.getString(0);
+            this.subscribeToStatus(callbackContext, myTrackerAddress);
             return true;
         } else if (action.equals("updateBackgroundStatus")) {
             Log.d(TAG, "SettingBackgroundStatus");
@@ -168,6 +155,8 @@ public class MinewTrackerkit extends CordovaPlugin {
     }
 
     private void startScan(CallbackContext callbackContext) {
+        Log.d(TAG, "startScan");
+
         peripherals = new LinkedHashMap<String, MTTracker>();
         if(PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION) || PermissionHelper.hasPermission(this, ACCESS_FINE_LOCATION)) {
             scanCallback = callbackContext;
@@ -180,6 +169,17 @@ public class MinewTrackerkit extends CordovaPlugin {
         }
     }
 
+    private void startReScan() {
+        Log.d(TAG, "rescan");
+
+        peripherals = new LinkedHashMap<String, MTTracker>();
+        if(PermissionHelper.hasPermission(this, ACCESS_COARSE_LOCATION) || PermissionHelper.hasPermission(this, ACCESS_FINE_LOCATION)) {
+            if(manager.checkBluetoothState() == BluetoothStatePowerOn) {
+                manager.startScan(this.scanTrackerCallback);
+            }
+        }
+    }
+
     private void stopScan(CallbackContext callbackContext) {
         scanCallback = null;
         manager.stopScan();
@@ -187,14 +187,20 @@ public class MinewTrackerkit extends CordovaPlugin {
         callbackContext.sendPluginResult(result);
     }
 
+    private void stopReScan() {
+        scanCallback = null;
+        manager.stopScan();
+    }
+
     private void find(CallbackContext callbackContext, String macAddress) {
-        connectCallback = callbackContext;
         Log.d(TAG, "find: " + macAddress);
         findCallback = callbackContext;
         myTracker = manager.bindMTTracker(macAddress);
         manager.bindingVerify(myTracker, new ConnectionStateCallback() {
             @Override
             public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
+                Log.d(TAG, "onUpdateConnectionState inside find");
+
             }
         });
         manager.setTrackerManangerListener(new TrackerManagerListener() {
@@ -206,6 +212,8 @@ public class MinewTrackerkit extends CordovaPlugin {
 
             @Override
             public void onUpdateConnectionState(MTTracker tracker, ConnectionState status) {
+                Log.d(TAG, "onUpdateConnectionState");
+
                 switch (status) {
                     case DeviceLinkStatus_Connected:
                         Log.d(TAG,"Connected");
@@ -213,9 +221,13 @@ public class MinewTrackerkit extends CordovaPlugin {
                         findCallback.sendPluginResult(result);
                         return;
                     default:
-                        Log.d(TAG,"Disconnected");
-                        result = new PluginResult(PluginResult.Status.ERROR);
-                        findCallback.sendPluginResult(result);
+                        if(backgroundStatus == false) {
+                            Log.d(TAG, "Disconnected");
+                            result = new PluginResult(PluginResult.Status.ERROR);
+                            findCallback.sendPluginResult(result);
+                        } else {
+                            //startReScan();
+                        }
                         return;
                 }
             }
@@ -235,6 +247,16 @@ public class MinewTrackerkit extends CordovaPlugin {
         }
     }
 
+    private void reconnect(String macAddress) {
+        Log.d(TAG, "reconnect to: " + macAddress);
+        if (peripherals.containsKey(macAddress)) {
+            MTTracker trackerToBind = peripherals.get(macAddress);
+            myTracker = trackerToBind;
+            manager.bindingVerify(trackerToBind, this.connectionCallback);
+            stopReScan();
+        }
+    }
+
     private void disconnect(CallbackContext callbackContext, String macAddress) {
         Log.d(TAG, "disconnect: " + macAddress);
         unbindCallback = callbackContext;
@@ -249,6 +271,7 @@ public class MinewTrackerkit extends CordovaPlugin {
                     clickCallback = null;
                     PluginResult result = new PluginResult(PluginResult.Status.OK);
                     unbindCallback.sendPluginResult(result);
+                    myTrackerAddress = null;
                 }
             });
         } else {
@@ -271,6 +294,8 @@ public class MinewTrackerkit extends CordovaPlugin {
     }
 
     private void subscribeToStatus(CallbackContext callbackContext, String macAddress) {
+        Log.d(TAG, "subscribeToStatus");
+
         if (myTracker.getMacAddress().equals(macAddress)) {
             Log.d(TAG, "subscribe to status: " + macAddress);
             disconnectCallback = callbackContext;
@@ -285,26 +310,44 @@ public class MinewTrackerkit extends CordovaPlugin {
     private MTTrackerListener connectionListener = new MTTrackerListener() {
         @Override
         public void onUpdateTracker(MTTracker mtTracker) {
+            Log.d(TAG, "onUpdateTracker");
+
         }
 
         @Override
         public void onUpdateConnectionState(ConnectionState connectionState) {
+            Log.d(TAG, "onUpdateConnectionState");
             PluginResult result;
             switch (connectionState) {
                 case DeviceLinkStatus_Connected:
                     Log.d(TAG, "connected");
                     if (disconnectCallback != null) {
-                        result = new PluginResult(PluginResult.Status.OK);
-                        result.setKeepCallback(true);
-                        disconnectCallback.sendPluginResult(result);
+
+                        if(backgroundStatus == false) {
+                            result = new PluginResult(PluginResult.Status.OK);
+                            result.setKeepCallback(true);
+                            disconnectCallback.sendPluginResult(result);
+                        } else {
+                            stopReScan();
+                            cancelNotification(91);
+                            createNotification("Connected", "Your Seer Button is connected.");
+                        }
                     }
                     break;
                 case DeviceLinkStatus_Disconnect:
                     Log.d(TAG, "disconnected");
                     if (disconnectCallback != null) {
-                        result = new PluginResult(PluginResult.Status.ERROR);
-                        result.setKeepCallback(true);
-                        disconnectCallback.sendPluginResult(result);
+
+                        if(backgroundStatus == false) {
+                            result = new PluginResult(PluginResult.Status.ERROR);
+                            result.setKeepCallback(true);
+                            disconnectCallback.sendPluginResult(result);
+                        } else {
+                            cancelNotification(91);
+                            createNotification("Disconnected", "Your Seer Button is disconnected.");
+                            //TODO: FIND THAT BUTTON AGAIN
+                            startReScan();
+                        }
                     }
                     break;
                 default:
@@ -342,35 +385,8 @@ public class MinewTrackerkit extends CordovaPlugin {
                         buttonData.timezone = (float) hours;
                         insertButtonData(buttonData);
 
-                        NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-                        int icon = mContext.getResources().getIdentifier((String) "star", "drawable", mContext.getPackageName());
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            notificationManager.deleteNotificationChannel("button.service.channel");
-
-                            NotificationChannel channel = new NotificationChannel("button.service.channel", "Button Services", NotificationManager.IMPORTANCE_DEFAULT);
-                            channel.setDescription("Enables button processing.");
-                            mContext.getSystemService(NotificationManager.class).createNotificationChannel(channel);
-
-                            Notification notification = new Notification.Builder(mContext, "button.service.channel")
-                                    .setContentTitle("Seer")
-                                    .setContentText("Your event has been recorded. Open the Seer app to add more details.")
-                                    .setOngoing(true)
-                                    .setSmallIcon(icon == 0 ? 17301514 : icon) // Default is the star icon
-                                    .build();
-
-                            notificationManager.notify(91, notification);
-                        } else {
-                            Notification notification = new Notification.Builder(mContext)
-                                    .setContentTitle("Seer")
-                                    .setContentText("Your event has been recorded. Open the Seer app to add more details.")
-                                    .setOngoing(true)
-                                    .setSmallIcon(icon == 0 ? 17301514 : icon) // Default is the star icon
-                                    .build();
-
-                            notificationManager.notify(91, notification);
-                        }
-
+                        cancelNotification(91);
+                        createNotification("Seer", "Your event has been recorded. Open the Seer app to add more details.");
                     }
             }
         }
@@ -380,28 +396,42 @@ public class MinewTrackerkit extends CordovaPlugin {
     private ScanTrackerCallback scanTrackerCallback = new ScanTrackerCallback() {
         @Override
         public void onScannedTracker(LinkedList<MTTracker> trackers) {
-
+            Log.d(TAG, "onScannedTracker");
 
             PluginResult result;
             for (MTTracker tracker : trackers) {
+                Log.d(TAG, "Found Tracker...");
 
-                if (scanCallback != null) {
-                    String mac = tracker.getMacAddress();
+                if(backgroundStatus == false) {
+                    if (scanCallback != null) {
+                        String mac = tracker.getMacAddress();
 
-                if (!peripherals.containsKey(mac)) {
-                        peripherals.put(mac, tracker);
-                        result = new PluginResult(PluginResult.Status.OK, asJSONObject(tracker));
-                        result.setKeepCallback(true);
-                        scanCallback.sendPluginResult(result);
+                        if (!peripherals.containsKey(mac)) {
+                            peripherals.put(mac, tracker);
+                            result = new PluginResult(PluginResult.Status.OK, asJSONObject(tracker));
+                            result.setKeepCallback(true);
+                            scanCallback.sendPluginResult(result);
+                        }
+                    }
+                } else {
+                    Log.d(TAG, "LOOKING FOR MAC "+myTrackerAddress);
+                    Log.d(TAG, "CURRENT MAC "+tracker.getMacAddress());
+                    if(myTrackerAddress.equals(tracker.getMacAddress())) {
+                        Log.d(TAG, "FOUND MAC");
+
+                        reconnect(myTrackerAddress);
+                        stopReScan();
                     }
                 }
             }
         }
     };
 
+
     private ConnectionStateCallback connectionCallback = new ConnectionStateCallback() {
         @Override
         public void onUpdateConnectionState(final boolean success, final TrackerException trackerException) {
+            Log.d(TAG, "onUpdateConnectionState");
 
             if (connectCallback != null) {
 
@@ -412,17 +442,26 @@ public class MinewTrackerkit extends CordovaPlugin {
                     startForegroundService();
 
                     myTracker = manager.bindMTTracker(myTracker.getMacAddress());
-                    result = new PluginResult(PluginResult.Status.OK);
-                    connectCallback.sendPluginResult(result);
+
+                    if(backgroundStatus == false) {
+                        result = new PluginResult(PluginResult.Status.OK);
+                        connectCallback.sendPluginResult(result);
+                    }
                     return;
                 } else {
                     Log.d("Connect", "FAIL");
                     Log.d("Connect", String.valueOf(trackerException));
 
-                    result = new PluginResult(PluginResult.Status.ERROR);
-                    connectCallback.sendPluginResult(result);
+                    if(backgroundStatus == false) {
+                        result = new PluginResult(PluginResult.Status.ERROR);
+                        connectCallback.sendPluginResult(result);
+                    }
                     return;
                 }
+            } else {
+                startForegroundService();
+                myTracker = manager.bindMTTracker(myTracker.getMacAddress());
+                return;
             }
         }
     };
@@ -546,4 +585,52 @@ public class MinewTrackerkit extends CordovaPlugin {
             foregroundServiceRunning = true;
         }
     }
+
+    private void createNotification(String title,
+                              String message) {
+
+        NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        int icon = mContext.getResources().getIdentifier((String) "star", "drawable", mContext.getPackageName());
+
+        Intent myIntent = new Intent(mContext, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                mContext,
+                0,
+                myIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.deleteNotificationChannel("button.service.channel");
+
+            NotificationChannel channel = new NotificationChannel("button.service.channel", "Button Services", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("Enables button processing.");
+            mContext.getSystemService(NotificationManager.class).createNotificationChannel(channel);
+
+            Notification notification = new Notification.Builder(mContext, "button.service.channel")
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setSmallIcon(icon == 0 ? 17301514 : icon) // Default is the star icon
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true)
+                    .build();
+            notificationManager.notify(91, notification);
+        } else {
+
+            Notification notification = new Notification.Builder(mContext)
+                    .setContentTitle("Seer")
+                    .setContentText(message)
+                    .setSmallIcon(icon == 0 ? 17301514 : icon) // Default is the star icon
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true)
+                    .build();
+            notificationManager.notify(91, notification);
+        }
+    }
+
+    private void cancelNotification(int id) {
+        NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(id);
+    }
+
 }

@@ -1,6 +1,6 @@
 {
   "name": "@seermedical/cordova-plugin-minew-trackerkit",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "cordova": {
     "id": "cordova-plugin-minew-trackerkit",
     "platforms": [
